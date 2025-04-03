@@ -20,10 +20,10 @@ import Compression
 
 final class GetStatusTests: XCTestCase {
   
-  func testStatusListFlow() async throws {
+  func testStatusListFlowValid() async throws {
     
-    guard let statusReference = StatusReference(
-      idx: 0,
+    guard let statusReference: StatusReference = .init(
+      idx: 1,
       uriString: "https://issuer.eudiw.dev/token_status_list/FC/eu.europa.ec.eudi.pid.1/b6ce44dc-d240-42e8-ada6-e62743ddc61f"
     ) else {
       XCTFail("Cannot decode status reference")
@@ -31,8 +31,7 @@ final class GetStatusTests: XCTestCase {
     }
     
     let result = await GetStatus(
-      verifier: VerifyStatusListTokenSignatureFactory.make(),
-      decompressible: Decompressible()
+      verifier: VerifyStatusListTokenSignatureFactory.make()
     ).getStatus(
       index: statusReference.idx,
       url: statusReference.uri
@@ -43,6 +42,31 @@ final class GetStatusTests: XCTestCase {
       XCTAssert(status == .valid)
     case .failure:
       XCTAssert(false, "Invalid status")
+    }
+  }
+  
+  func testStatusListFlowInvalid() async throws {
+    
+    guard let statusReference: StatusReference = .init(
+      idx: 2000,
+      uriString: "https://issuer.eudiw.dev/token_status_list/FC/eu.europa.ec.eudi.pid.1/b6ce44dc-d240-42e8-ada6-e62743ddc61f"
+    ) else {
+      XCTFail("Cannot decode status reference")
+      return
+    }
+    
+    let result = await GetStatus(
+      verifier: VerifyStatusListTokenSignatureFactory.make()
+    ).getStatus(
+      index: statusReference.idx,
+      url: statusReference.uri
+    )
+    
+    switch result {
+    case .success:
+      XCTAssert(false)
+    case .failure:
+      XCTAssert(true)
     }
   }
 }

@@ -66,7 +66,7 @@ public protocol GetStatusType {
     session: URLSession,
     format: StatusListTokenFormat,
     url: URL
-  ) async -> Result<Status, StatusError>
+  ) async -> Result<CredentialStatus, StatusError>
 }
 
 
@@ -78,7 +78,7 @@ public actor GetStatus: GetStatusType {
   
   public init(
     verifier: any VerifyStatusListTokenSignature,
-    decompressible: any DecompressibleType,
+    decompressible: any DecompressibleType = Decompressible(),
     date: Date = Date()
   ) {
     self.verifier = verifier
@@ -91,7 +91,7 @@ public actor GetStatus: GetStatusType {
     session: URLSession = .shared,
     format: StatusListTokenFormat = .jwt,
     url: URL
-  ) async -> Result<Status, StatusError> {
+  ) async -> Result<CredentialStatus, StatusError> {
     
     let result = await getStatusClaims(
       session: session,
@@ -103,31 +103,35 @@ public actor GetStatus: GetStatusType {
     case .failure(let error):
       return .failure(error)
     case .success(let claims):
-      guard
-        let decodedBytes = Data.fromBase64URL(claims.statusList.compressedList)
-      else {
-        return .failure(.badBytes)
-      }
-      decompressible.setData(Data(decodedBytes))
-      let decompressedBytes = decompressible.decompress()
-      let statusByte = ReadStatus(
-        bitsPerStatus: claims.statusList.bytesPerStatus,
-        byteArray: [Byte](decompressedBytes)
+      return await processStatusClaims(
+        claims,
+        index: index
       )
-      
-      if let byte = await statusByte.readStatus(at: index) {
-        return .success(
-          Status.fromByte(
-            byte
-          )
-        )
-      }
-      return .failure(StatusError.badBytes)
     }
   }
 }
 
 private extension GetStatus {
+  
+  private func processStatusClaims(_ claims: StatusListTokenClaims, index: Int) async -> Result<CredentialStatus, StatusError> {
+    guard let decodedBytes = Data.fromBase64URL(claims.statusList.compressedList) else {
+      return .failure(.badBytes)
+    }
+    
+    decompressible.setData(Data(decodedBytes))
+    let decompressedBytes = decompressible.decompress()
+    
+    let statusByte = ReadStatus(
+      bitsPerStatus: claims.statusList.bytesPerStatus,
+      byteArray: [Byte](decompressedBytes)
+    )
+    
+    if let byte = await statusByte.readStatus(at: index) {
+      return .success(CredentialStatus.fromByte(byte))
+    }
+    
+    return .failure(.badBytes)
+  }
   
   private func getStatusClaims(
     session: URLSession,

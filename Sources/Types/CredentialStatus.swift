@@ -18,7 +18,7 @@ import Foundation
 import Foundation
 
 /// The registered status types
-public enum Status: Equatable, Sendable {
+public enum CredentialStatus: Equatable, Sendable {
   case valid
   case invalid
   case suspended
@@ -37,7 +37,7 @@ public enum Status: Equatable, Sendable {
   }
   
   /// Creates a `Status` given a `value`.
-  public static func fromByte(_ value: UInt8) -> Status {
+  public static func fromByte(_ value: UInt8) -> CredentialStatus {
     if value == TokenStatusListSpec.statusValid { return .valid }
     if value == TokenStatusListSpec.statusInvalid { return .invalid }
     if value == TokenStatusListSpec.statusSuspended { return .suspended }

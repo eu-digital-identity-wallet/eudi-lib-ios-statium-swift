@@ -27,7 +27,7 @@ final class CompressionsTests: XCTestCase {
     
     XCTAssertEqual(bytes, decodedBytes!)
     
-    let decompressed = Decompressible(data: Data(bytes)).decompress()
+    let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
     
     XCTAssertEqual(decompressed[0], 0xb9)
     XCTAssertEqual(decompressed[1], 0xa3)
@@ -40,10 +40,24 @@ final class CompressionsTests: XCTestCase {
     
     XCTAssertEqual(bytes, decodedBytes!)
     
-    let decompressed = Decompressible(data: Data(bytes)).decompress()
+    let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
 
     XCTAssertEqual(decompressed[0], 0xc9)
     XCTAssertEqual(decompressed[1], 0x44)
     XCTAssertEqual(decompressed[2], 0xf9)
+  }
+  
+  func testDecomression() {
+    
+   let bytes: [UInt8] = [0x78, 0xda, 0x63, 0x60, 0x40, 0x02, 0x00, 0x00, 0x0d, 0x00, 0x01]
+    let decodedBytes = Data.fromBase64URL("eNpjYEACAAANAAE")
+    
+    XCTAssertEqual(bytes, decodedBytes!)
+    
+    let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
+
+    XCTAssertEqual(decompressed[0], 0x00)
+    XCTAssertEqual(decompressed[1], 0x00)
+    XCTAssertEqual(decompressed[2], 0x00)
   }
 }
