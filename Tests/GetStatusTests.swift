@@ -20,6 +20,30 @@ import Compression
 
 final class GetStatusTests: XCTestCase {
   
+  func testStatusListToken() async throws {
+    
+    guard let statusReference: StatusReference = .init(
+      idx: 1,
+      uriString: TestsConstants.testStatusUrlString
+    ) else {
+      XCTFail("Cannot decode status reference")
+      return
+    }
+    
+    let getStatusToken = GetStatusListToken(
+      verifier: VerifyStatusListTokenSignatureFactory.make(),
+      date: Date()
+    )
+    
+    let result = await getStatusToken.getStatusClaims(url: statusReference.uri)
+    switch result {
+    case .success(let claims):
+      XCTAssert(true)
+    case .failure:
+      XCTAssert(false, "Invalid status")
+    }
+  }
+  
   func testStatusListFlowValid() async throws {
     
     guard let statusReference: StatusReference = .init(
@@ -30,30 +54,50 @@ final class GetStatusTests: XCTestCase {
       return
     }
     
-    let result = await GetStatus(
+    let getStatus = GetStatus()
+    let getStatusToken = GetStatusListToken(
       verifier: VerifyStatusListTokenSignatureFactory.make()
-    ).getStatus(
+    )
+    
+    let result = await getStatus.getStatus(
       index: statusReference.idx,
-      url: statusReference.uri
+      url: statusReference.uri,
+      fetchClaims: getStatusToken.getStatusClaims
     )
     
     switch result {
     case .success(let status):
-      XCTAssert(status == .valid)
+      switch status {
+      case .valid:
+        XCTAssert(true)
+      case .invalid:
+        XCTAssert(false)
+      case .suspended:
+        XCTAssert(false)
+      case .applicationSpecific(_):
+        XCTAssert(false)
+      case .reserved(_):
+        XCTAssert(false)
+      }
+      
     case .failure:
       XCTAssert(false, "Invalid status")
     }
   }
   
   func testStatusListFlowValidWithStatusReference() async throws {
-        
-    let result = await GetStatus(
+    
+    let getStatus = GetStatus()
+    let getStatusToken = GetStatusListToken(
       verifier: VerifyStatusListTokenSignatureFactory.make()
-    ).getStatus(
+    )
+    
+    let result = await getStatus.getStatus(
       reference: .init(
         idx: 1,
         uriString: TestsConstants.testStatusUrlString
-      )!
+      )!,
+      fetchClaims: getStatusToken.getStatusClaims
     )
     
     switch result {
@@ -74,11 +118,15 @@ final class GetStatusTests: XCTestCase {
       return
     }
     
-    let result = await GetStatus(
+    let getStatus = GetStatus()
+    let getStatusToken = GetStatusListToken(
       verifier: VerifyStatusListTokenSignatureFactory.make()
-    ).getStatus(
+    )
+    
+    let result = await getStatus.getStatus(
       index: statusReference.idx,
-      url: statusReference.uri
+      url: statusReference.uri,
+      fetchClaims: getStatusToken.getStatusClaims
     )
     
     switch result {

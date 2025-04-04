@@ -25,7 +25,7 @@ public protocol VerifyStatusListTokenSignature: Sendable {
   ) throws
 }
 
-public enum VerifyStatusListTokenSignatureFactory {
+internal enum VerifyStatusListTokenSignatureFactory {
    public static func make() -> VerifyStatusListTokenSignature {
      VerifyStatusListTokenSignatureImpl()
    }

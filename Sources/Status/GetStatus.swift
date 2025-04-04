@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 import Foundation
-import JOSESwift
-
-import Foundation
 
 /// A protocol that defines the necessary requirements for types that retrieve status information.
 ///
@@ -24,18 +21,14 @@ import Foundation
 /// and a `Date`, as well as a method to fetch a status asynchronously based on an index, session, format, and URL.
 public protocol GetStatusType {
   
-  /// Initializes an object that conforms to `GetStatusType` with the provided `verifier` and `date`.
+  /// Initializes an object that conforms to `GetStatusType`.
   ///
-  /// - Parameter verifier: An object responsible for verifying the status list token's signature.
   /// - Parameter decompressible: Used to decompress bytes.
-  /// - Parameter date: The date used for token validation (e.g., to check expiration or issue time).
   ///
   /// This initializer is required to ensure the object is properly set up with the necessary dependencies
   /// for status retrieval and validation.
   init(
-    verifier: any VerifyStatusListTokenSignature,
-    decompressible: any DecompressibleType,
-    date: Date
+    decompressible: any DecompressibleType
   )
   
   /// Fetches the status information asynchronously for a given index.
@@ -54,44 +47,41 @@ public protocol GetStatusType {
     session: URLSession,
     index: Int,
     url: URL,
-    format: StatusListTokenFormat
+    format: StatusListTokenFormat,
+    fetchClaims: @escaping @Sendable (URLSession, StatusListTokenFormat, URL) async -> Result<StatusListTokenClaims, StatusError>
   ) async -> Result<CredentialStatus, StatusError>
   
   func getStatus(
     session: URLSession,
     reference: StatusReference,
-    format: StatusListTokenFormat
+    format: StatusListTokenFormat,
+    fetchClaims: @escaping @Sendable (URLSession, StatusListTokenFormat, URL) async -> Result<StatusListTokenClaims, StatusError>
   ) async -> Result<CredentialStatus, StatusError>
 }
 
 
 public actor GetStatus: GetStatusType {
   
-  public let verifier: any VerifyStatusListTokenSignature
   public var decompressible: any DecompressibleType
-  public let date: Date
   
   public init(
-    verifier: any VerifyStatusListTokenSignature,
-    decompressible: any DecompressibleType = Decompressible(),
-    date: Date = Date()
+    decompressible: any DecompressibleType = Decompressible()
   ) {
-    self.verifier = verifier
     self.decompressible = decompressible
-    self.date = date
   }
   
   public func getStatus(
     session: URLSession = .shared,
     index: Int,
     url: URL,
-    format: StatusListTokenFormat = .jwt
+    format: StatusListTokenFormat = .jwt,
+    fetchClaims: @escaping (URLSession, StatusListTokenFormat, URL) async -> Result<StatusListTokenClaims, StatusError>
   ) async -> Result<CredentialStatus, StatusError> {
     
-    let result = await getStatusClaims(
-      session: session,
-      format: format,
-      url: url
+    let result = await fetchClaims(
+      session,
+      format,
+      url
     )
     
     switch result {
@@ -108,18 +98,17 @@ public actor GetStatus: GetStatusType {
   public func getStatus(
     session: URLSession = .shared,
     reference: StatusReference,
-    format: StatusListTokenFormat = .jwt
+    format: StatusListTokenFormat = .jwt,
+    fetchClaims: @escaping @Sendable (URLSession, StatusListTokenFormat, URL) async -> Result<StatusListTokenClaims, StatusError>
   ) async -> Result<CredentialStatus, StatusError> {
     await getStatus(
       session: session,
       index: reference.idx,
       url: reference.uri,
-      format: format
+      format: format,
+      fetchClaims: fetchClaims
     )
   }
-}
-
-private extension GetStatus {
   
   private func processStatusClaims(_ claims: StatusListTokenClaims, index: Int) async -> Result<CredentialStatus, StatusError> {
     guard let decodedBytes = Data.fromBase64URL(claims.statusList.compressedList) else {
@@ -139,118 +128,5 @@ private extension GetStatus {
     }
     
     return .failure(.badBytes)
-  }
-  
-  private func getStatusClaims(
-    session: URLSession,
-    format: StatusListTokenFormat,
-    url: URL?
-  ) async -> Result<StatusListTokenClaims, StatusError> {
-    
-    guard format == .jwt else { return .failure(.cwtNotSupported) }
-    guard let url = url else { return .failure(.badUrl) }
-    
-    let jwtResult = await fetchJWT(from: url, session: session, format: format)
-    
-    switch jwtResult {
-    case .failure(let error):
-      return .failure(error)
-    case .success(let jwt):
-      return processJWT(
-        jwt,
-        verifier: verifier,
-        sourceURL: url.absoluteString,
-        format: format
-      )
-    }
-  }
-  
-  private func fetchJWT(
-    from url: URL,
-    session: URLSession,
-    format: StatusListTokenFormat
-  ) async -> Result<String, StatusError> {
-    
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    request.addValue(format.fieldHeaderValue, forHTTPHeaderField: "Accept")
-    
-    do {
-      let (data, response) = try await session.data(for: request)
-      guard
-        let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
-      else {
-        return .failure(.networkError("Bad server response: \((response as? HTTPURLResponse)?.statusCode ?? -1)"))
-      }
-      
-      guard let jwt = String(data: data, encoding: .utf8) else {
-        return .failure(.decodingError("Failed to decode JWT from response"))
-      }
-      
-      return .success(jwt)
-      
-    } catch {
-      return .failure(.networkError(error.localizedDescription))
-    }
-  }
-  
-  private func processJWT(
-    _ jwt: String,
-    verifier: VerifyStatusListTokenSignature,
-    sourceURL: String,
-    format: StatusListTokenFormat
-  ) -> Result<StatusListTokenClaims, StatusError> {
-    do {
-      let claims = try getAndEnsureClaims(jwt, sourceURL, date)
-      try verifier.verify(statusListToken: jwt, format: format, at: date)
-      
-      return .success(claims)
-    } catch {
-      return .failure(.error(error.localizedDescription))
-    }
-  }
-  
-  func getAndEnsureClaims(
-    _ jwt: String,
-    _ uri: String,
-    _ date: Date
-  ) throws -> StatusListTokenClaims {
-    let jws = try JWS(compactSerialization: jwt)
-    let claims = try JSONDecoder().decode(
-      StatusListTokenClaims.self,
-      from: jws.payload.data()
-    )
-    
-    if jws.header.typ != TokenStatusListSpec.mediaSubtypeStatusListJWT {
-      throw StatusError.badJwtHeader
-    }
-    
-    return try claims.ensureValid(uri: uri, date: date)
-  }
-}
-
-extension StatusListTokenClaims {
-  func ensureValid(uri: String, date: Date) throws -> StatusListTokenClaims {
-    if uri != self.subject {
-      throw StatusError.badSubject(self.subject)
-    }
-    
-    let exp = expirationTime
-    let expirationDate = Date(timeIntervalSince1970: exp)
-    /*
-     guard expirationDate > date else {
-     throw StatusError.expiredToken
-     }
-     */
-    
-    let iat = issuedAt
-    let iatDate = Date(timeIntervalSince1970: iat)
-    /*
-     guard iatDate <= date else {
-     throw StatusError.invalidIssueDate
-     }
-     */
-    
-    return self
   }
 }
