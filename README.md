@@ -122,10 +122,10 @@ Library provides for this use case the interface [GetStatus](Sources/Status/GetS
 
 ```swift
 // Create an instance of GetStatusListToken (as shown in the Get Status List Token section)
-val getStatusListToken: GetStatusListToken = ...
+let getStatusListToken: GetStatusListToken = ...
 
 // Create an instance of GetStatus
-val getStatus: GetStatus = GetStatus()
+let getStatus: GetStatus = GetStatus()
 
 // Assuming you have a StatusReference from a Referenced Token
 let statusReference: StatusReference = .init(
