@@ -48,24 +48,19 @@ public protocol GetStatusType {
   /// - Parameter format: The format of the status list token, represented as a `StatusListTokenFormat`.
   /// - Parameter url: A `URL` that represents the source of the status list.
   ///
-  /// - Returns: A `Result` containing either a `Status` if the operation succeeds, or a `StatusError` if it fails.
+  /// - Returns: A `Result` containing either a `CredentialStatus` if the operation succeeds, or a `StatusError` if it fails.
   ///
-  /// Example:
-  /// ```swift
-  /// let statusFetcher = GetStatus(verifier: yourVerifier, date: Date())
-  /// let result = await statusFetcher.getStatus(index: 1, session: URLSession.shared, format: .jwt, url: yourURL)
-  /// switch result {
-  /// case .success(let status):
-  ///     print(status)
-  /// case .failure(let error):
-  ///     print(error)
-  /// }
-  /// ```
   func getStatus(
-    index: Int,
     session: URLSession,
-    format: StatusListTokenFormat,
-    url: URL
+    index: Int,
+    url: URL,
+    format: StatusListTokenFormat
+  ) async -> Result<CredentialStatus, StatusError>
+  
+  func getStatus(
+    session: URLSession,
+    reference: StatusReference,
+    format: StatusListTokenFormat
   ) async -> Result<CredentialStatus, StatusError>
 }
 
@@ -87,10 +82,10 @@ public actor GetStatus: GetStatusType {
   }
   
   public func getStatus(
-    index: Int,
     session: URLSession = .shared,
-    format: StatusListTokenFormat = .jwt,
-    url: URL
+    index: Int,
+    url: URL,
+    format: StatusListTokenFormat = .jwt
   ) async -> Result<CredentialStatus, StatusError> {
     
     let result = await getStatusClaims(
@@ -108,6 +103,19 @@ public actor GetStatus: GetStatusType {
         index: index
       )
     }
+  }
+  
+  public func getStatus(
+    session: URLSession = .shared,
+    reference: StatusReference,
+    format: StatusListTokenFormat = .jwt
+  ) async -> Result<CredentialStatus, StatusError> {
+    await getStatus(
+      session: session,
+      index: reference.idx,
+      url: reference.uri,
+      format: format
+    )
   }
 }
 

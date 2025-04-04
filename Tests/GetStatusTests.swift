@@ -24,7 +24,7 @@ final class GetStatusTests: XCTestCase {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
-      uriString: "https://issuer.eudiw.dev/token_status_list/FC/eu.europa.ec.eudi.pid.1/b6ce44dc-d240-42e8-ada6-e62743ddc61f"
+      uriString: TestsConstants.testStatusUrlString
     ) else {
       XCTFail("Cannot decode status reference")
       return
@@ -45,11 +45,30 @@ final class GetStatusTests: XCTestCase {
     }
   }
   
+  func testStatusListFlowValidWithStatusReference() async throws {
+        
+    let result = await GetStatus(
+      verifier: VerifyStatusListTokenSignatureFactory.make()
+    ).getStatus(
+      reference: .init(
+        idx: 1,
+        uriString: TestsConstants.testStatusUrlString
+      )!
+    )
+    
+    switch result {
+    case .success(let status):
+      XCTAssert(status == .valid)
+    case .failure:
+      XCTAssert(false, "Invalid status")
+    }
+  }
+  
   func testStatusListFlowInvalid() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 2000,
-      uriString: "https://issuer.eudiw.dev/token_status_list/FC/eu.europa.ec.eudi.pid.1/b6ce44dc-d240-42e8-ada6-e62743ddc61f"
+      uriString: TestsConstants.testStatusUrlString
     ) else {
       XCTFail("Cannot decode status reference")
       return

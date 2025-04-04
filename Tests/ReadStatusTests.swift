@@ -177,7 +177,6 @@ final class ReadStatusTests: XCTestCase {
     XCTAssert(result == 2)
   }
   
-  
   func testBitsPerStatusFourOps() async {
     // Example 3: 4 bits per status
     // In this case, each 4 bits (nibble) represent a status (0-15)

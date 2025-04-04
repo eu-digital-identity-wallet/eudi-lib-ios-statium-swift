@@ -25,7 +25,7 @@ import Foundation
  * containing the status information for the Referenced Token
  */
 
-public struct StatusReference: Codable {
+public struct StatusReference: Codable, Sendable {
   public let idx: Int
   public let uri: URL
   
