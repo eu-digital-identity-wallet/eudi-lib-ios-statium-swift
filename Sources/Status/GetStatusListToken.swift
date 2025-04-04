@@ -1,0 +1,181 @@
+/*
+ * Copyright (c) 2023 European Commission
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import Foundation
+import JOSESwift
+
+public protocol GetStatusListTokenType {
+  
+  /// Initializes an object that conforms to `GetStatusListTokenType` with the provided `verifier` and `date`.
+  ///
+  /// - Parameter verifier: An object responsible for verifying the status list token's signature.
+  /// - Parameter date: The date used for token validation (e.g., to check expiration or issue time).
+  ///
+  /// This initializer is required to ensure the object is properly set up with the necessary dependencies
+  /// for status retrieval and validation.
+  init(
+    verifier: any VerifyStatusListTokenSignature,
+    date: Date
+  )
+  
+  /// Retrieves the status list token claims from the given URL.
+  ///
+  /// - Parameters:
+  ///   - session: The `URLSession` instance used for network requests.
+  ///   - format: The format of the status list token, either `.jwt` or `.cwt`.
+  ///   - url: An optional `URL` pointing to the status list resource.
+  /// - Returns: A `Result` containing either the `StatusListTokenClaims` on success or a `StatusError` on failure.
+  func getStatusClaims(
+    session: URLSession,
+    format: StatusListTokenFormat,
+    url: URL
+  ) async -> Result<StatusListTokenClaims, StatusError>
+}
+
+public actor GetStatusListToken: GetStatusListTokenType {
+  
+  public let verifier: any VerifyStatusListTokenSignature
+  public let date: Date
+  
+  public init(
+    verifier: any VerifyStatusListTokenSignature,
+    date: Date = Date()
+  ) {
+    self.verifier = verifier
+    self.date = date
+  }
+  
+  public func getStatusClaims(
+    session: URLSession = .shared,
+    format: StatusListTokenFormat = .jwt,
+    url: URL
+  ) async -> Result<StatusListTokenClaims, StatusError> {
+    await getClaims(session: session, format: format, url: url)
+  }
+}
+
+private extension GetStatusListToken {
+  private func getClaims(
+    session: URLSession,
+    format: StatusListTokenFormat,
+    url: URL
+  ) async -> Result<StatusListTokenClaims, StatusError> {
+    
+    guard format == .jwt else { return .failure(.cwtNotSupported) }
+    
+    let jwtResult = await fetchJWT(from: url, session: session, format: format)
+    
+    switch jwtResult {
+    case .failure(let error):
+      return .failure(error)
+    case .success(let jwt):
+      return processJWT(
+        jwt,
+        verifier: verifier,
+        sourceURL: url.absoluteString,
+        format: format
+      )
+    }
+  }
+  
+  private func fetchJWT(
+    from url: URL,
+    session: URLSession,
+    format: StatusListTokenFormat
+  ) async -> Result<String, StatusError> {
+    
+    var request = URLRequest(url: url)
+    request.httpMethod = "GET"
+    request.addValue(format.fieldHeaderValue, forHTTPHeaderField: "Accept")
+    
+    do {
+      let (data, response) = try await session.data(for: request)
+      guard
+        let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
+      else {
+        return .failure(.networkError("Bad server response: \((response as? HTTPURLResponse)?.statusCode ?? -1)"))
+      }
+      
+      guard let jwt = String(data: data, encoding: .utf8) else {
+        return .failure(.decodingError("Failed to decode JWT from response"))
+      }
+      
+      return .success(jwt)
+      
+    } catch {
+      return .failure(.networkError(error.localizedDescription))
+    }
+  }
+  
+  private func processJWT(
+    _ jwt: String,
+    verifier: VerifyStatusListTokenSignature,
+    sourceURL: String,
+    format: StatusListTokenFormat
+  ) -> Result<StatusListTokenClaims, StatusError> {
+    do {
+      let claims = try getAndEnsureClaims(jwt, sourceURL, date)
+      try verifier.verify(statusListToken: jwt, format: format, at: date)
+      
+      return .success(claims)
+    } catch {
+      return .failure(.error(error.localizedDescription))
+    }
+  }
+  
+  func getAndEnsureClaims(
+    _ jwt: String,
+    _ uri: String,
+    _ date: Date
+  ) throws -> StatusListTokenClaims {
+    let jws = try JWS(compactSerialization: jwt)
+    let claims = try JSONDecoder().decode(
+      StatusListTokenClaims.self,
+      from: jws.payload.data()
+    )
+    
+    if jws.header.typ != TokenStatusListSpec.mediaSubtypeStatusListJWT {
+      throw StatusError.badJwtHeader
+    }
+    
+    return try claims.ensureValid(uri: uri, date: date)
+  }
+}
+
+extension StatusListTokenClaims {
+  func ensureValid(uri: String, date: Date) throws -> StatusListTokenClaims {
+    if uri != self.subject {
+      throw StatusError.badSubject(self.subject)
+    }
+    
+    let exp = expirationTime
+    let expirationDate = Date(timeIntervalSince1970: exp)
+    /*
+     guard expirationDate > date else {
+     throw StatusError.expiredToken
+     }
+     */
+    
+    let iat = issuedAt
+    let iatDate = Date(timeIntervalSince1970: iat)
+    /*
+     guard iatDate <= date else {
+     throw StatusError.invalidIssueDate
+     }
+     */
+    
+    return self
+  }
+}

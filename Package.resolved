@@ -1,0 +1,15 @@
+{
+  "originHash" : "5616c6630623dd099a0114484a11692c2c5fff3f8234a368d5137fe159c1a0ee",
+  "pins" : [
+    {
+      "identity" : "joseswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/airsidemobile/JOSESwift.git",
+      "state" : {
+        "revision" : "c2664a902e75c0426a1d43132bd4babc6fd173d3",
+        "version" : "3.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}
