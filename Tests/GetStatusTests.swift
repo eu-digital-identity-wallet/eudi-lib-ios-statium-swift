@@ -30,14 +30,17 @@ final class GetStatusTests: XCTestCase {
       return
     }
     
-    let getStatusToken = GetStatusListToken(
+    let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make(),
       date: Date()
     )
     
-    let result = await getStatusToken.getStatusClaims(url: statusReference.uri)
+    let result = await tokenFetcher.getStatusClaims(
+      url: statusReference.uri
+    )
+    
     switch result {
-    case .success(let claims):
+    case .success:
       XCTAssert(true)
     case .failure:
       XCTAssert(false, "Invalid status")
@@ -55,14 +58,14 @@ final class GetStatusTests: XCTestCase {
     }
     
     let getStatus = GetStatus()
-    let getStatusToken = GetStatusListToken(
+    let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
     
     let result = await getStatus.getStatus(
       index: statusReference.idx,
       url: statusReference.uri,
-      fetchClaims: getStatusToken.getStatusClaims
+      fetchClaims: tokenFetcher.getStatusClaims
     )
     
     switch result {
@@ -74,9 +77,9 @@ final class GetStatusTests: XCTestCase {
         XCTAssert(false)
       case .suspended:
         XCTAssert(false)
-      case .applicationSpecific(_):
+      case .applicationSpecific:
         XCTAssert(false)
-      case .reserved(_):
+      case .reserved:
         XCTAssert(false)
       }
       
@@ -88,7 +91,7 @@ final class GetStatusTests: XCTestCase {
   func testStatusListFlowValidWithStatusReference() async throws {
     
     let getStatus = GetStatus()
-    let getStatusToken = GetStatusListToken(
+    let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
     
@@ -97,7 +100,7 @@ final class GetStatusTests: XCTestCase {
         idx: 1,
         uriString: TestsConstants.testStatusUrlString
       )!,
-      fetchClaims: getStatusToken.getStatusClaims
+      fetchClaims: tokenFetcher.getStatusClaims
     )
     
     switch result {
@@ -119,14 +122,14 @@ final class GetStatusTests: XCTestCase {
     }
     
     let getStatus = GetStatus()
-    let getStatusToken = GetStatusListToken(
+    let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
     
     let result = await getStatus.getStatus(
       index: statusReference.idx,
       url: statusReference.uri,
-      fetchClaims: getStatusToken.getStatusClaims
+      fetchClaims: tokenFetcher.getStatusClaims
     )
     
     switch result {

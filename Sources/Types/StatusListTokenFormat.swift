@@ -15,8 +15,6 @@
  */
 import Foundation
 
-import Foundation
-
 /// An enumeration that defines the possible formats for a status list token.
 ///
 /// This enum is used to specify whether the status list token is in JSON Web Token (JWT) format or

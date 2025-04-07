@@ -16,16 +16,18 @@
 import Foundation
 import JOSESwift
 
-public protocol GetStatusListTokenType {
+public protocol StatusListTokenFetcherType {
   
-  /// Initializes an object that conforms to `GetStatusListTokenType` with the provided `verifier` and `date`.
+  /// Initializes an object that conforms to `StatusListTokenFetcherType` with the provided `verifier` and `date`.
   ///
   /// - Parameter verifier: An object responsible for verifying the status list token's signature.
+  /// - Parameter networkingService: An object responsible fornetworking.
   /// - Parameter date: The date used for token validation (e.g., to check expiration or issue time).
   ///
   /// This initializer is required to ensure the object is properly set up with the necessary dependencies
   /// for status retrieval and validation.
   init(
+    networkingService: NetworkingServiceType,
     verifier: any VerifyStatusListTokenSignature,
     date: Date
   )
@@ -44,15 +46,18 @@ public protocol GetStatusListTokenType {
   ) async -> Result<StatusListTokenClaims, StatusError>
 }
 
-public actor GetStatusListToken: GetStatusListTokenType {
+public actor StatusListTokenFetcher: StatusListTokenFetcherType {
   
+  public let networkingService: any NetworkingServiceType
   public let verifier: any VerifyStatusListTokenSignature
   public let date: Date
   
   public init(
+    networkingService: NetworkingServiceType = NetworkingService(),
     verifier: any VerifyStatusListTokenSignature,
     date: Date = Date()
   ) {
+    self.networkingService = networkingService
     self.verifier = verifier
     self.date = date
   }
@@ -66,7 +71,7 @@ public actor GetStatusListToken: GetStatusListTokenType {
   }
 }
 
-private extension GetStatusListToken {
+private extension StatusListTokenFetcher {
   private func getClaims(
     session: URLSession,
     format: StatusListTokenFormat,
@@ -75,7 +80,9 @@ private extension GetStatusListToken {
     
     guard format == .jwt else { return .failure(.cwtNotSupported) }
     
-    let jwtResult = await fetchJWT(from: url, session: session, format: format)
+    let jwtResult = await fetchJWT(
+      from: url, format: format
+    )
     
     switch jwtResult {
     case .failure(let error):
@@ -92,30 +99,21 @@ private extension GetStatusListToken {
   
   private func fetchJWT(
     from url: URL,
-    session: URLSession,
     format: StatusListTokenFormat
   ) async -> Result<String, StatusError> {
     
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    request.addValue(format.fieldHeaderValue, forHTTPHeaderField: "Accept")
+    let result = await networkingService.get(
+      url: url,
+      headers: [
+        "Accept": format.fieldHeaderValue
+      ]
+    )
     
-    do {
-      let (data, response) = try await session.data(for: request)
-      guard
-        let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200
-      else {
-        return .failure(.networkError("Bad server response: \((response as? HTTPURLResponse)?.statusCode ?? -1)"))
-      }
-      
-      guard let jwt = String(data: data, encoding: .utf8) else {
-        return .failure(.decodingError("Failed to decode JWT from response"))
-      }
-      
-      return .success(jwt)
-      
-    } catch {
-      return .failure(.networkError(error.localizedDescription))
+    switch result {
+    case .success(let string):
+      return .success(string)
+    case .failure(let error):
+      return .failure(StatusError.error(error.localizedDescription))
     }
   }
   
