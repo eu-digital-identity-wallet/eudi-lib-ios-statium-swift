@@ -27,7 +27,7 @@ public protocol NetworkingServiceType: Sendable {
   ) async -> Result<String, NetworkingError>
 }
 
-public final class NetworkingService: NetworkingServiceType {
+public actor NetworkingService: NetworkingServiceType {
   
   public let session: URLSession
   
