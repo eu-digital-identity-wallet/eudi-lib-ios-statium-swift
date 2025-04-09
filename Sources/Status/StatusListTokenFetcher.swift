@@ -84,11 +84,11 @@ private extension StatusListTokenFetcher {
       from: url, format: format
     )
     
-    switch jwtResult {
+    return switch jwtResult {
     case .failure(let error):
-      return .failure(error)
+      .failure(error)
     case .success(let jwt):
-      return processJWT(
+      processJWT(
         jwt,
         verifier: verifier,
         sourceURL: url.absoluteString,

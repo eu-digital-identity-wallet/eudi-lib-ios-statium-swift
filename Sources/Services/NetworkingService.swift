@@ -59,7 +59,9 @@ public actor NetworkingService: NetworkingServiceType {
       }
       
       guard let string = String(data: data, encoding: .utf8) else {
-        return .failure(.error("Failed to decode JWT from response"))
+        return .failure(
+          .error("Failed to decode JWT from response")
+        )
       }
       
       return .success(string)
