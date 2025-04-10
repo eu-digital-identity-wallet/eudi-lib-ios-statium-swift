@@ -19,10 +19,16 @@ import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
+let isGithubActions = ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true"
+
 final class GetStatusTests {
   
-  @Test // ("Supply working URL", .disabled())
+  @Test
   func testStatusListToken() async throws {
+    
+    guard isGithubActions == false else {
+      return
+    }
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
