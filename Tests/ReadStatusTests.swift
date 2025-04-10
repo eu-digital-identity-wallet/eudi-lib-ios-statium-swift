@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import XCTest
+import Testing
+import Foundation
 import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
-final class ReadStatusTests: XCTestCase {
+final class ReadStatusTests {
   
+  @Test
   func testBitsPerStatusOneOps() async {
     // Example 1: 1 bit per status
     // In this case, each bit represents a status (0 or 1)
@@ -37,30 +39,31 @@ final class ReadStatusTests: XCTestCase {
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 3)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 4)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 5)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 6)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 7)
-    XCTAssert(result == 1)
+    #expect(result == 1)
   }
   
+  @Test
   func testBitsPerStatusOneOps2() async {
     // Test with multiple bytes
     // Byte 0: 10101010 (0xAA)
@@ -70,55 +73,56 @@ final class ReadStatusTests: XCTestCase {
     
     // First byte (index 0-7)
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 3)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 4)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 5)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 6)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 7)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     // Second byte (index 8-15)
     result = await readStatus.readStatus(at: 8)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 9)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 10)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 11)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 12)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 13)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 14)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 15)
-    XCTAssert(result == 1)
+    #expect(result == 1)
   }
   
+  @Test
   func testBitsPerStatusTwoOps() async {
     // Example 2: 2 bits per status
     // In this case, each 2 bits represent a status (0-3)
@@ -131,18 +135,19 @@ final class ReadStatusTests: XCTestCase {
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 2)
+    #expect(result == 2)
     
     result = await readStatus.readStatus(at: 3)
-    XCTAssert(result == 3)
+    #expect(result == 3)
   }
   
+  @Test
   func testBitsPerStatusTwoOps2() async {
     
     // Test with multiple bytes
@@ -153,30 +158,31 @@ final class ReadStatusTests: XCTestCase {
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 2)
+    #expect(result == 2)
     
     result = await readStatus.readStatus(at: 3)
-    XCTAssert(result == 3)
+    #expect(result == 3)
     
     result = await readStatus.readStatus(at: 4)
-    XCTAssert(result == 3)
+    #expect(result == 3)
     
     result = await readStatus.readStatus(at: 5)
-    XCTAssert(result == 2)
+    #expect(result == 2)
     
     result = await readStatus.readStatus(at: 6)
-    XCTAssert(result == 1)
+    #expect(result == 1)
     
     result = await readStatus.readStatus(at: 7)
-    XCTAssert(result == 2)
+    #expect(result == 2)
   }
   
+  @Test
   func testBitsPerStatusFourOps() async {
     // Example 3: 4 bits per status
     // In this case, each 4 bits (nibble) represent a status (0-15)
@@ -187,12 +193,13 @@ final class ReadStatusTests: XCTestCase {
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 15)
+    #expect(result == 15)
   }
   
+  @Test
   func testBitsPerStatusFourOps2() async {
     // Test with multiple bytes
     // Byte 0: 11110000 (0xF0)
@@ -202,19 +209,20 @@ final class ReadStatusTests: XCTestCase {
     
     // First byte (index 0-1)
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 15)
+    #expect(result == 15)
     
     // Second byte (index 2-3)
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 5)
+    #expect(result == 5)
     
     result = await readStatus.readStatus(at: 3)
-    XCTAssert(result == 10)
+    #expect(result == 10)
   }
   
+  @Test
   func testBitsPerStatusEightOps() async {
     // Example 4: 8 bits per status
     // In this case, each byte represents a status (0-255)
@@ -225,21 +233,22 @@ final class ReadStatusTests: XCTestCase {
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: 0)
-    XCTAssert(result == 255)
+    #expect(result == 255)
     
     result = await readStatus.readStatus(at: 1)
-    XCTAssert(result == 0)
+    #expect(result == 0)
     
     result = await readStatus.readStatus(at: 2)
-    XCTAssert(result == 170)
+    #expect(result == 170)
   }
   
+  @Test
   func testNegativeIndexOps() async {
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0x00])
     var result: Byte? = nil
     
     result = await readStatus.readStatus(at: -1)
-    XCTAssertNil(result)
+    #expect(result == nil)
   }
 }
 

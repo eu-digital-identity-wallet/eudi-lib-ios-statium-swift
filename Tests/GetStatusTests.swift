@@ -13,20 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import XCTest
+import Testing
+import Foundation
 import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
-final class GetStatusTests: XCTestCase {
+final class GetStatusTests {
   
+  @Test // ("Supply working URL", .disabled())
   func testStatusListToken() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
       uriString: TestsConstants.testStatusUrlString
     ) else {
-      XCTFail("Cannot decode status reference")
+      Issue.record("Cannot decode status reference")
       return
     }
     
@@ -41,19 +43,20 @@ final class GetStatusTests: XCTestCase {
     
     switch result {
     case .success:
-      XCTAssert(true)
+      #expect(true)
     case .failure:
-      XCTAssert(false, "Invalid status")
+      Issue.record("Invalid status")
     }
   }
   
+  @Test // ("Supply working URL", .disabled())
   func testStatusListFlowValid() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
       uriString: TestsConstants.testStatusUrlString
     ) else {
-      XCTFail("Cannot decode status reference")
+      Issue.record("Cannot decode status reference")
       return
     }
     
@@ -72,22 +75,23 @@ final class GetStatusTests: XCTestCase {
     case .success(let status):
       switch status {
       case .valid:
-        XCTAssert(true)
+        #expect(true)
       case .invalid:
-        XCTAssert(false)
+        Issue.record("Invalid status")
       case .suspended:
-        XCTAssert(false)
+        Issue.record("Invalid status")
       case .applicationSpecific:
-        XCTAssert(false)
+        Issue.record("Invalid status")
       case .reserved:
-        XCTAssert(false)
+        Issue.record("Invalid status")
       }
       
     case .failure:
-      XCTAssert(false, "Invalid status")
+      Issue.record("Invalid status")
     }
   }
   
+  @Test // ("Supply working URL", .disabled())
   func testStatusListFlowValidWithStatusReference() async throws {
     
     let getStatus = GetStatus()
@@ -105,19 +109,20 @@ final class GetStatusTests: XCTestCase {
     
     switch result {
     case .success(let status):
-      XCTAssert(status == .valid)
+      #expect(status == .valid)
     case .failure:
-      XCTAssert(false, "Invalid status")
+      Issue.record("Invalid status")
     }
   }
   
+  @Test // ("Supply working URL", .disabled())
   func testStatusListFlowInvalid() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 2000,
       uriString: TestsConstants.testStatusUrlString
     ) else {
-      XCTFail("Cannot decode status reference")
+      Issue.record("Cannot decode status reference")
       return
     }
     
@@ -134,9 +139,9 @@ final class GetStatusTests: XCTestCase {
     
     switch result {
     case .success:
-      XCTAssert(false)
+      Issue.record("Invalid status")
     case .failure:
-      XCTAssert(true)
+      #expect(true)
     }
   }
 }
