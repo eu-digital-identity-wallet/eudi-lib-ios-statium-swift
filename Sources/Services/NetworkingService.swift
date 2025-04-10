@@ -27,7 +27,7 @@ public protocol NetworkingServiceType: Sendable {
   ) async -> Result<String, NetworkingError>
 }
 
-public final class NetworkingService: NetworkingServiceType {
+public actor NetworkingService: NetworkingServiceType {
   
   public let session: URLSession
   
@@ -59,7 +59,9 @@ public final class NetworkingService: NetworkingServiceType {
       }
       
       guard let string = String(data: data, encoding: .utf8) else {
-        return .failure(.error("Failed to decode JWT from response"))
+        return .failure(
+          .error("Failed to decode JWT from response")
+        )
       }
       
       return .success(string)

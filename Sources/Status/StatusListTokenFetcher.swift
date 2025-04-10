@@ -84,11 +84,11 @@ private extension StatusListTokenFetcher {
       from: url, format: format
     )
     
-    switch jwtResult {
+    return switch jwtResult {
     case .failure(let error):
-      return .failure(error)
+      .failure(error)
     case .success(let jwt):
-      return processJWT(
+      processJWT(
         jwt,
         verifier: verifier,
         sourceURL: url.absoluteString,
@@ -158,13 +158,14 @@ extension StatusListTokenClaims {
       throw StatusError.badSubject(self.subject)
     }
     
-    let exp = expirationTime
-    let expirationDate = Date(timeIntervalSince1970: exp)
-    /*
-     guard expirationDate > date else {
-     throw StatusError.expiredToken
-     }
-     */
+    if let exp = expirationTime {
+      let expirationDate = Date(timeIntervalSince1970: exp)
+      /*
+       guard expirationDate > date else {
+       throw StatusError.expiredToken
+       }
+       */
+    }
     
     let iat = issuedAt
     let iatDate = Date(timeIntervalSince1970: iat)
