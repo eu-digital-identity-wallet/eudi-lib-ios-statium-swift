@@ -18,14 +18,14 @@ import Foundation
 public struct StatusListTokenClaims: Codable, Sendable {
   public let subject: String
   public let issuedAt: TimeInterval
-  public let expirationTime: TimeInterval
+  public let expirationTime: TimeInterval?
   public let timeToLive: TimeInterval?
   public let statusList: StatusList
   
   public init(
     subject: String,
     issuedAt: TimeInterval,
-    expirationTime: TimeInterval,
+    expirationTime: TimeInterval?,
     timeToLive: TimeInterval?,
     statusList: StatusList
   ) {
