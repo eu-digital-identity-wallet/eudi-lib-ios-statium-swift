@@ -19,7 +19,7 @@ import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
-let isGithubActions = ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true"
+let isGithubActions = ProcessInfo.processInfo.environment["CI"] == "true"
 
 final class GetStatusTests {
   
