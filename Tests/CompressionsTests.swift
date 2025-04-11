@@ -13,51 +13,55 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import XCTest
+import Testing
+import Foundation
 import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
-final class CompressionsTests: XCTestCase {
+final class CompressionsTests {
   
+  @Test
   func testDecomressionShorter() {
     
     let bytes: [UInt8] = [0x78, 0xda, 0xdb, 0xb9, 0x18, 0x00, 0x02, 0x17, 0x01, 0x5d]
     let decodedBytes = Data.fromBase64URL("eNrbuRgAAhcBXQ")
     
-    XCTAssertEqual(bytes, decodedBytes!)
+    #expect(bytes == decodedBytes!)
     
     let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
     
-    XCTAssertEqual(decompressed[0], 0xb9)
-    XCTAssertEqual(decompressed[1], 0xa3)
+    #expect(decompressed[0] == 0xb9)
+    #expect(decompressed[1] == 0xa3)
   }
   
+  @Test
   func testDecomressionLonger() {
     
     let bytes: [UInt8] = [0x78, 0xda, 0x3b, 0xe9, 0xf2, 0x13, 0x00, 0x03, 0xdf, 0x02, 0x07]
     let decodedBytes = Data.fromBase64URL("eNo76fITAAPfAgc")
     
-    XCTAssertEqual(bytes, decodedBytes!)
+    #expect(bytes == decodedBytes!)
     
     let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
 
-    XCTAssertEqual(decompressed[0], 0xc9)
-    XCTAssertEqual(decompressed[1], 0x44)
-    XCTAssertEqual(decompressed[2], 0xf9)
+    #expect(decompressed[0] == 0xc9)
+    #expect(decompressed[1] == 0x44)
+    #expect(decompressed[2] == 0xf9)
   }
   
+  @Test
   func testDecomression() {
     
    let bytes: [UInt8] = [0x78, 0xda, 0x63, 0x60, 0x40, 0x02, 0x00, 0x00, 0x0d, 0x00, 0x01]
     let decodedBytes = Data.fromBase64URL("eNpjYEACAAANAAE")
     
-    XCTAssertEqual(bytes, decodedBytes!)
+    #expect(bytes == decodedBytes!)
     
     let decompressed = Decompressible(data: Data(decodedBytes!)).decompress()
 
-    XCTAssertEqual(decompressed[0], 0x00)
-    XCTAssertEqual(decompressed[1], 0x00)
-    XCTAssertEqual(decompressed[2], 0x00)
+    #expect(decompressed[0] == 0x00)
+    #expect(decompressed[1] == 0x00)
+    #expect(decompressed[2] == 0x00)
   }
 }
