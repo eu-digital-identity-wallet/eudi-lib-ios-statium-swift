@@ -19,16 +19,11 @@ import Compression
 
 @testable import eudi_lib_ios_statium_swift
 
-let isGithubActions = ProcessInfo.processInfo.environment["CI"] == "true"
-
 final class GetStatusTests {
   
-  @Test
+  // Uncomment to run locally
+  // @Test
   func testStatusListToken() async throws {
-    
-    guard isGithubActions == false else {
-      return
-    }
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
@@ -55,7 +50,7 @@ final class GetStatusTests {
     }
   }
   
-  @Test // ("Supply working URL", .disabled())
+  // @Test
   func testStatusListFlowValid() async throws {
     
     guard let statusReference: StatusReference = .init(
@@ -97,7 +92,7 @@ final class GetStatusTests {
     }
   }
   
-  @Test // ("Supply working URL", .disabled())
+  // @Test
   func testStatusListFlowValidWithStatusReference() async throws {
     
     let getStatus = GetStatus()
@@ -121,7 +116,7 @@ final class GetStatusTests {
     }
   }
   
-  @Test // ("Supply working URL", .disabled())
+  // @Test
   func testStatusListFlowInvalid() async throws {
     
     guard let statusReference: StatusReference = .init(
