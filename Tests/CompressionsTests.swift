@@ -17,7 +17,7 @@ import Testing
 import Foundation
 import Compression
 
-@testable import eudi_lib_ios_statium_swift
+@testable import StatiumSwift
 
 final class CompressionsTests {
   

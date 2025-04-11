@@ -29,4 +29,5 @@ public enum StatusError: LocalizedError {
   case outOfRange
   case expiredToken
   case invalidIssueDate
+  case invalidJWT
 }

@@ -20,7 +20,7 @@ platform :ios do
   lane :tests do
     params = {
       package_path: '.',
-      scheme: 'StatusList',
+      scheme: 'StatiumSwift',
       devices: ['iPhone 14'], 
       result_bundle: true,
       parallel_testing: false,
