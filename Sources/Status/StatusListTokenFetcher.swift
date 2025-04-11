@@ -138,13 +138,17 @@ private extension StatusListTokenFetcher {
     _ uri: String,
     _ date: Date
   ) throws -> StatusListTokenClaims {
-    let jws = try JWS(compactSerialization: jwt)
-    let claims = try JSONDecoder().decode(
-      StatusListTokenClaims.self,
-      from: jws.payload.data()
+    let jwt = try JWT(
+      compactJWT: jwt
     )
     
-    if jws.header.typ != TokenStatusListSpec.mediaSubtypeStatusListJWT {
+    let claims = try JSONDecoder().decode(
+      StatusListTokenClaims.self,
+      from: jwt.payload
+    )
+    
+    let header = jwt.header["typ"] as? String
+    if header != TokenStatusListSpec.mediaSubtypeStatusListJWT {
       throw StatusError.badJwtHeader
     }
     

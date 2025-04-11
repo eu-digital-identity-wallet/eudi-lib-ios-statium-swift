@@ -10,23 +10,11 @@ let package = Package(
     .library(
       name: "eudi-lib-ios-statium-swift",
       targets: ["eudi-lib-ios-statium-swift"]
-    ),
-  ],
-  dependencies: [
-    .package(
-      url: "https://github.com/airsidemobile/JOSESwift.git",
-      from: "3.0.0"
-    ),
+    )
   ],
   targets: [
     .target(
-      name: "eudi-lib-ios-statium-swift",
-      dependencies: [
-        .product(
-          name: "JOSESwift",
-          package: "JOSESwift"
-        )
-      ]
+      name: "eudi-lib-ios-statium-swift"
     ),
     .testTarget(
       name: "eudi-lib-ios-statium-swiftTests",
