@@ -2,7 +2,7 @@
 name: build-package
 on:
   pull_request:
-    types: [opened, reopene, synchronize]
+    types: [opened, reopened, synchronize]
   push:
     branches: ['main']
     tags: [ v* ]
