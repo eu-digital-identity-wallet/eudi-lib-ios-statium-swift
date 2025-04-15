@@ -4,33 +4,21 @@
 import PackageDescription
 
 let package = Package(
-  name: "StatusList",
+  name: "StatiumSwift",
   platforms: [.iOS(.v14), .macOS(.v12)],
   products: [
     .library(
-      name: "eudi-lib-ios-statium-swift",
-      targets: ["eudi-lib-ios-statium-swift"]
-    ),
-  ],
-  dependencies: [
-    .package(
-      url: "https://github.com/airsidemobile/JOSESwift.git",
-      from: "3.0.0"
-    ),
+      name: "StatiumSwift",
+      targets: ["StatiumSwift"]
+    )
   ],
   targets: [
     .target(
-      name: "eudi-lib-ios-statium-swift",
-      dependencies: [
-        .product(
-          name: "JOSESwift",
-          package: "JOSESwift"
-        )
-      ]
+      name: "StatiumSwift"
     ),
     .testTarget(
-      name: "eudi-lib-ios-statium-swiftTests",
-      dependencies: ["eudi-lib-ios-statium-swift"]
+      name: "StatiumSwiftTests",
+      dependencies: ["StatiumSwift"]
     ),
   ]
 )
