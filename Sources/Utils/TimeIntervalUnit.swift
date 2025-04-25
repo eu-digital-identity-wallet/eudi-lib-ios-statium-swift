@@ -15,19 +15,29 @@
  */
 import Foundation
 
-public enum StatusError: LocalizedError, Equatable {
-  case error(String)
-  case badUrl
-  case badServerResponse
-  case cannotDecodeRawData
-  case badSubject(String)
-  case badJwtHeader
-  case cwtNotSupported
-  case networkError(String)
-  case decodingError(String)
-  case badBytes
-  case outOfRange
-  case expiredToken
-  case invalidIssueDate
-  case invalidJWT
+public enum TimeIntervalUnit {
+  case seconds
+  case minutes
+  case hours
+  case days
+  case weeks
+  
+  public var value: TimeInterval {
+    switch self {
+    case .seconds:
+      return 1
+    case .minutes:
+      return 60
+    case .hours:
+      return 60 * 60
+    case .days:
+      return 60 * 60 * 24
+    case .weeks:
+      return 60 * 60 * 24 * 7
+    }
+  }
+  
+  public func toTimeInterval(multiplier: Double) -> TimeInterval {
+    return value * multiplier
+  }
 }

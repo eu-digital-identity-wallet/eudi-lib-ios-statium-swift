@@ -28,26 +28,9 @@ internal struct JWT {
       throw StatusError.invalidJWT
     }
     
-    func base64URLDecode(_ str: String) throws -> Data {
-      var base64 = str
-        .replacingOccurrences(of: "-", with: "+")
-        .replacingOccurrences(of: "_", with: "/")
-      
-      let paddingLength = 4 - base64.count % 4
-      if paddingLength < 4 {
-        base64 += String(repeating: "=", count: paddingLength)
-      }
-      
-      guard let data = Data(base64Encoded: base64) else {
-        throw StatusError.invalidJWT
-      }
-      
-      return data
-    }
-    
-    let headerData = try base64URLDecode(segments[0])
-    let payloadData = try base64URLDecode(segments[1])
-    let signatureData = try base64URLDecode(segments[2])
+    let headerData = try Data.base64URLDecode(segments[0])
+    let payloadData = try Data.base64URLDecode(segments[1])
+    let signatureData = try Data.base64URLDecode(segments[2])
     
     let headerJSON = try JSONSerialization.jsonObject(with: headerData, options: [])
     guard let headerDict = headerJSON as? [String: Any] else {
@@ -60,4 +43,22 @@ internal struct JWT {
   }
 }
 
+extension Data {
+  static func base64URLDecode(_ str: String) throws -> Data {
+    var base64 = str
+      .replacingOccurrences(of: "-", with: "+")
+      .replacingOccurrences(of: "_", with: "/")
+    
+    let paddingLength = 4 - base64.count % 4
+    if paddingLength < 4 {
+      base64 += String(repeating: "=", count: paddingLength)
+    }
+    
+    guard let data = Data(base64Encoded: base64) else {
+      throw StatusError.invalidJWT
+    }
+    
+    return data
+  }
+}
 

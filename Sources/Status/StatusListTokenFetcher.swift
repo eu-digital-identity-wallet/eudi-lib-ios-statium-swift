@@ -161,22 +161,20 @@ extension StatusListTokenClaims {
       throw StatusError.badSubject(self.subject)
     }
     
+    let cs = self.clockSkew
+    
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
-      /*
-       guard expirationDate > date else {
-       throw StatusError.expiredToken
-       }
-       */
+//      guard date <= expirationDate.addingTimeInterval(cs) else {
+//        throw StatusError.expiredToken
+//      }
     }
     
     let iat = issuedAt
     let iatDate = Date(timeIntervalSince1970: iat)
-    /*
-     guard iatDate <= date else {
-     throw StatusError.invalidIssueDate
-     }
-     */
+//    guard iatDate.addingTimeInterval(-cs) <= date else {
+//      throw StatusError.invalidIssueDate
+//    }
     
     return self
   }
