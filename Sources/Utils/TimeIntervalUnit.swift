@@ -15,13 +15,26 @@
  */
 import Foundation
 
+/// A unit of time used to convert to `TimeInterval` values.
 public enum TimeIntervalUnit {
+  /// Represents seconds as a unit of time.
   case seconds
+  /// Represents minutes as a unit of time.
   case minutes
+  /// Represents hours as a unit of time.
   case hours
+  /// Represents days as a unit of time.
   case days
+  /// Represents weeks as a unit of time.
   case weeks
   
+  /// The raw time interval value in seconds for the unit.
+  ///
+  /// - `seconds` = 1
+  /// - `minutes` = 60
+  /// - `hours` = 3600
+  /// - `days` = 86400
+  /// - `weeks` = 604800
   public var value: TimeInterval {
     switch self {
     case .seconds:
@@ -37,7 +50,19 @@ public enum TimeIntervalUnit {
     }
   }
   
-  public func toTimeInterval(multiplier: Double) -> TimeInterval {
+  /// Converts the unit to a `TimeInterval` using the given multiplier.
+  ///
+  /// > Warning:
+  ///   Passing `0` as the multiplier results in a `TimeInterval` of zero seconds,
+  ///   which might not be meaningful depending on your use case.
+  ///   It is recommended to use a non-zero multiplier.
+  ///
+  /// - Parameter multiplier: A `Double` value that multiplies the base unit. Defaults to `1.0`.
+  /// - Returns: The corresponding `TimeInterval` in seconds.
+  public func toTimeInterval(multiplier: Double = 1.0) -> TimeInterval? {
+    guard multiplier != 0 else {
+      return nil
+    }
     return value * multiplier
   }
 }

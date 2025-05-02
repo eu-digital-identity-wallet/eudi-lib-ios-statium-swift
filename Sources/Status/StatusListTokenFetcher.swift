@@ -41,7 +41,8 @@ public protocol StatusListTokenFetcherType {
   func getStatusClaims(
     session: URLSession,
     format: StatusListTokenFormat,
-    url: URL
+    url: URL,
+    clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError>
 }
 
@@ -64,9 +65,10 @@ public actor StatusListTokenFetcher: StatusListTokenFetcherType {
   public func getStatusClaims(
     session: URLSession = .shared,
     format: StatusListTokenFormat = .jwt,
-    url: URL
+    url: URL,
+    clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError> {
-    await getClaims(session: session, format: format, url: url)
+    await getClaims(session: session, format: format, url: url, clockSkew: clockSkew)
   }
 }
 
@@ -74,7 +76,8 @@ private extension StatusListTokenFetcher {
   private func getClaims(
     session: URLSession,
     format: StatusListTokenFormat,
-    url: URL
+    url: URL,
+    clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError> {
     
     guard format == .jwt else { return .failure(.cwtNotSupported) }
@@ -91,7 +94,8 @@ private extension StatusListTokenFetcher {
         jwt,
         verifier: verifier,
         sourceURL: url.absoluteString,
-        format: format
+        format: format,
+        clockSkew: clockSkew
       )
     }
   }
@@ -120,10 +124,11 @@ private extension StatusListTokenFetcher {
     _ jwt: String,
     verifier: VerifyStatusListTokenSignature,
     sourceURL: String,
-    format: StatusListTokenFormat
+    format: StatusListTokenFormat,
+    clockSkew: TimeInterval
   ) -> Result<StatusListTokenClaims, StatusError> {
     do {
-      let claims = try getAndEnsureClaims(jwt, sourceURL, date)
+      let claims = try getAndEnsureClaims(jwt, sourceURL, date, clockSkew)
       try verifier.verify(statusListToken: jwt, format: format, at: date)
       
       return .success(claims)
@@ -135,7 +140,8 @@ private extension StatusListTokenFetcher {
   func getAndEnsureClaims(
     _ jwt: String,
     _ uri: String,
-    _ date: Date
+    _ date: Date,
+    _ clockSkew: TimeInterval
   ) throws -> StatusListTokenClaims {
     let jwt = try JWT(
       compactJWT: jwt
@@ -151,28 +157,30 @@ private extension StatusListTokenFetcher {
       throw StatusError.badJwtHeader
     }
     
-    return try claims.ensureValid(uri: uri, date: date)
+    return try claims.ensureValid(uri: uri, date: date, clockSkew: clockSkew)
   }
 }
 
 extension StatusListTokenClaims {
-  func ensureValid(uri: String, date: Date) throws -> StatusListTokenClaims {
+  func ensureValid(
+    uri: String,
+    date: Date,
+    clockSkew: TimeInterval
+  ) throws -> StatusListTokenClaims {
     if uri != self.subject {
       throw StatusError.badSubject(self.subject)
     }
-    
-    let cs = self.clockSkew
-    
+
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
-//      guard date <= expirationDate.addingTimeInterval(cs) else {
+//      guard date <= expirationDate.addingTimeInterval(clockSkew) else {
 //        throw StatusError.expiredToken
 //      }
     }
     
     let iat = issuedAt
     let iatDate = Date(timeIntervalSince1970: iat)
-//    guard iatDate.addingTimeInterval(-cs) <= date else {
+//    guard iatDate.addingTimeInterval(-clockSkew) <= date else {
 //      throw StatusError.invalidIssueDate
 //    }
     

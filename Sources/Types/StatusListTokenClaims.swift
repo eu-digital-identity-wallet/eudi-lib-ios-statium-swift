@@ -21,8 +21,7 @@ public struct StatusListTokenClaims: Codable, Sendable {
   public let expirationTime: TimeInterval?
   public let timeToLive: TimeInterval?
   public let statusList: StatusList
-  public let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
-  
+
   public init(
     subject: String,
     issuedAt: TimeInterval,
@@ -43,6 +42,5 @@ public struct StatusListTokenClaims: Codable, Sendable {
     case expirationTime = "exp"
     case timeToLive = "ttl"
     case statusList = "status_list"
-    case clockSkew = "cs"
   }
 }
