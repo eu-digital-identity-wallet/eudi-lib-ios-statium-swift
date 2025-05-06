@@ -8,12 +8,18 @@ the [EUDI Wallet Reference Implementation project description](https://github.co
 
 ## Table of contents
 
-* [Overview](#overview)
-* [Disclaimer](#disclaimer)
-* [Installation](#installation)
-* [Use cases supported](#use-cases-supported)
-* [How to contribute](#how-to-contribute)
-* [License](#license) 
+- [EUDI Statium](#eudi-statium)
+  - [Table of contents](#table-of-contents)
+  - [Overview](#overview)
+  - [Disclaimer](#disclaimer)
+  - [Installation](#installation)
+  - [Use cases supported](#use-cases-supported)
+    - [Get Status List Token](#get-status-list-token)
+    - [Read a Status List](#read-a-status-list)
+    - [Get Status](#get-status)
+  - [How to contribute](#how-to-contribute)
+  - [License](#license)
+    - [License details](#license-details)
 
 ## Overview
 
@@ -55,6 +61,9 @@ As a `Relying Party` fetch a `Status List Token`.
 Library provides for this use case the interface [GetStatusListToken](Sources/Status/GetStatusToken.swift)
 
 ```swift
+// Define the clock skew (tolerance for time differences)
+let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+
 // Create an instance of GetStatusListToken
 
 let getStatusToken = GetStatusListToken(
@@ -63,7 +72,10 @@ let getStatusToken = GetStatusListToken(
 )
 
 // Use the GetStatusListToken instance to fetch a status list token
-let result = await getStatusToken.getStatusClaims(url: statusReference.uri)
+let result = await getStatusToken.getStatusClaims(
+  url: statusReference.uri, 
+  clockSkew: clockSkew
+)
 
 // Handle the result
 switch result {
@@ -121,6 +133,9 @@ a reference to a `status_list`.
 Library provides for this use case the interface [GetStatus](Sources/Status/GetStatus.kt)
 
 ```swift
+// Define the clock skew (tolerance for time differences)
+let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+
 // Create an instance of GetStatusListToken (as shown in the Get Status List Token section)
 let getStatusListToken: GetStatusListToken = ...
 
@@ -137,7 +152,8 @@ let statusReference: StatusReference = .init(
 let result = await getStatus.getStatus(
     index: statusReference.idx,
     url: statusReference.uri,
-    fetchClaims: getStatusToken.getStatusClaims
+    fetchClaims: getStatusToken.getStatusClaims,
+    clockSkew: clockSkew
 )
 
 // Handle the result
