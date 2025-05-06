@@ -36,7 +36,7 @@ final class TimeInternalUnitTests {
     #expect(TimeIntervalUnit.minutes.toTimeInterval(multiplier: 2) == 120)
     #expect(TimeIntervalUnit.hours.toTimeInterval(multiplier: 0.5) == 1800)
     #expect(TimeIntervalUnit.days.toTimeInterval(multiplier: 1.5) == 129600)
-    #expect(TimeIntervalUnit.weeks.toTimeInterval(multiplier: 0) == 0)
+    #expect(TimeIntervalUnit.weeks.toTimeInterval(multiplier: 1) == 604800)
   }
 }
 
