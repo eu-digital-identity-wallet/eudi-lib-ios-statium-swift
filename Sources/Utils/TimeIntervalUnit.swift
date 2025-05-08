@@ -50,19 +50,12 @@ public enum TimeIntervalUnit {
     }
   }
   
+  
   /// Converts the unit to a `TimeInterval` using the given multiplier.
   ///
-  /// > Warning:
-  ///   Passing `0` as the multiplier results in a `TimeInterval` of zero seconds,
-  ///   which might not be meaningful depending on your use case.
-  ///   It is recommended to use a non-zero multiplier.
-  ///
   /// - Parameter multiplier: A `Double` value that multiplies the base unit. Defaults to `1.0`.
-  /// - Returns: The corresponding `TimeInterval` in seconds.
-  public func toTimeInterval(multiplier: Double = 1.0) -> TimeInterval? {
-    guard multiplier != 0 else {
-      return nil
-    }
+  /// - Returns: The corresponding `TimeInterval` in seconds. If the multiplier is `0`, the result will be `0`.
+  public func toTimeInterval(multiplier: Double = 1.0) -> TimeInterval {
     return value * multiplier
   }
 }

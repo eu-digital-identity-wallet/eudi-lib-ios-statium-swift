@@ -15,7 +15,7 @@
  */
 import Foundation
 
-public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenFormat, URL,TimeInterval) async -> Result<StatusListTokenClaims, StatusError>
+public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenFormat, URL, TimeInterval) async -> Result<StatusListTokenClaims, StatusError>
 
 /// A protocol that defines the necessary requirements for types that retrieve status information.
 ///
@@ -87,7 +87,8 @@ public actor GetStatus: GetStatusType {
     let result = await fetchClaims(
       session,
       format,
-      url, clockSkew
+      url,
+      clockSkew
     )
     
     switch result {

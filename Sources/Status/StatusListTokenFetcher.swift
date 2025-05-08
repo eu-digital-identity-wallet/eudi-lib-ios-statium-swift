@@ -173,17 +173,20 @@ extension StatusListTokenClaims {
 
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
-//      guard date <= expirationDate.addingTimeInterval(clockSkew) else {
-//        throw StatusError.expiredToken
-//      }
+      /*
+       guard date <= expirationDate.addingTimeInterval(clockSkew) else {
+       throw StatusError.expiredToken
+       }
+       */
     }
     
     let iat = issuedAt
     let iatDate = Date(timeIntervalSince1970: iat)
-//    guard iatDate.addingTimeInterval(-clockSkew) <= date else {
-//      throw StatusError.invalidIssueDate
-//    }
-    
+    /*
+     guard iatDate.addingTimeInterval(-clockSkew) <= date else {
+     throw StatusError.invalidIssueDate
+     }
+     */
     return self
   }
 }

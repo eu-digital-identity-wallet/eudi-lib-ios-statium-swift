@@ -62,7 +62,7 @@ Library provides for this use case the interface [GetStatusListToken](Sources/St
 
 ```swift
 // Define the clock skew (tolerance for time differences)
-let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
 
 // Create an instance of GetStatusListToken
 
@@ -134,7 +134,7 @@ Library provides for this use case the interface [GetStatus](Sources/Status/GetS
 
 ```swift
 // Define the clock skew (tolerance for time differences)
-let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+let clockSkew: TimeInterval = TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
 
 // Create an instance of GetStatusListToken (as shown in the Get Status List Token section)
 let getStatusListToken: GetStatusListToken = ...

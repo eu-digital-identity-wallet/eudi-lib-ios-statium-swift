@@ -41,7 +41,7 @@ final class GetStatusTests {
     
     let result = await tokenFetcher.getStatusClaims(
       url: statusReference.uri,
-      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
     
     switch result {
@@ -72,7 +72,7 @@ final class GetStatusTests {
       index: statusReference.idx,
       url: statusReference.uri,
       fetchClaims: tokenFetcher.getStatusClaims,
-      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
     
     switch result {
@@ -109,7 +109,7 @@ final class GetStatusTests {
         uriString: TestsConstants.testStatusUrlString
       )!,
       fetchClaims: tokenFetcher.getStatusClaims,
-      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
     
     switch result {
@@ -140,7 +140,7 @@ final class GetStatusTests {
       index: statusReference.idx,
       url: statusReference.uri,
       fetchClaims: tokenFetcher.getStatusClaims,
-      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3) ?? 1.0
+      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
     
     switch result {
