@@ -28,7 +28,7 @@ final class GetStatusTests {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
-      uriString: TestsConstants.testStatusUrlString
+      uriString: ConstantsTests.testStatusUrlString
     ) else {
       Issue.record("Cannot decode status reference")
       return
@@ -57,7 +57,7 @@ final class GetStatusTests {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
-      uriString: TestsConstants.testStatusUrlString
+      uriString: ConstantsTests.testStatusUrlString
     ) else {
       Issue.record("Cannot decode status reference")
       return
@@ -106,7 +106,7 @@ final class GetStatusTests {
     let result = await getStatus.getStatus(
       reference: .init(
         idx: 1,
-        uriString: TestsConstants.testStatusUrlString
+        uriString: ConstantsTests.testStatusUrlString
       )!,
       fetchClaims: tokenFetcher.getStatusClaims,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
@@ -125,7 +125,7 @@ final class GetStatusTests {
     
     guard let statusReference: StatusReference = .init(
       idx: 2000,
-      uriString: TestsConstants.testStatusUrlString
+      uriString: ConstantsTests.testStatusUrlString
     ) else {
       Issue.record("Cannot decode status reference")
       return

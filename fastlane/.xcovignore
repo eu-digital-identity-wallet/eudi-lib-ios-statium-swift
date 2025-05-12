@@ -1,0 +1,11 @@
+# Tests
+- .*Tests.swift
+ 
+# Error
+- .*Error.swift
+
+# Individual Files
+- NetworkingService.swift
+- VerifyStatusListTokenSignature.swift
+- StatusListTokenClaims.swift
+- StatusList.swift

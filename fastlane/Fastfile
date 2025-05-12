@@ -69,10 +69,8 @@ platform :ios do
     xcov(
       scheme: "StatiumSwift",
       output_directory: "xcov_output",
-      is_swift_package: true,
-      include_test_targets: true,       
-      include_targets: "StatiumSwiftTests"
-      # ignore_file_path: [""]
+      is_swift_package: true,     
+      include_targets: "StatiumSwift"
     )
 
     if ENV['CI'] != 'true'

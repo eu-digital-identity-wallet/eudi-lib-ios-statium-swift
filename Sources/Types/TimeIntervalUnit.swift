@@ -50,7 +50,6 @@ public enum TimeIntervalUnit {
     }
   }
   
-  
   /// Converts the unit to a `TimeInterval` using the given multiplier.
   ///
   /// - Parameter multiplier: A `Double` value that multiplies the base unit. Defaults to `1.0`.

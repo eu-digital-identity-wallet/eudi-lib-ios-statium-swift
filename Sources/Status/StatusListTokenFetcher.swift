@@ -88,7 +88,7 @@ private extension StatusListTokenFetcher {
     
     return switch jwtResult {
     case .failure(let error):
-      .failure(error)
+        .failure(error)
     case .success(let jwt):
       processJWT(
         jwt,
@@ -170,7 +170,7 @@ extension StatusListTokenClaims {
     if uri != self.subject {
       throw StatusError.badSubject(self.subject)
     }
-
+    
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
       /*

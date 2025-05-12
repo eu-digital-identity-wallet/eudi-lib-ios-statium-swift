@@ -19,25 +19,25 @@ import Foundation
 @testable import StatiumSwift
 
 @Suite
-final class JWTTests {
+final class BitsPerStatusTests {
   
   @Test
-  func testValidJWTDecoding() throws {
-    let validJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+  func testBitsPerStatusEncoding() throws {
     
-    let jwt = try JWT(compactJWT: validJWT)
+    let bitsPerStatus: BitsPerStatus = .four
+    let encodedData = try JSONEncoder().encode(bitsPerStatus)
+    let decodedValue = try JSONDecoder().decode(Int.self, from: encodedData)
     
-    if let alg = jwt.header["alg"] as? String {
-      #expect(alg == "HS256")
-    }
+    #expect(decodedValue == bitsPerStatus.rawValue)
   }
   
   @Test
-  func testInvalidJWTDecoding() throws {
-    let invalidJWT = "invalid.jwt"
+  func testInvalidBitsPerStatusEncoding() throws {
+    let invalidRawValue = 3
+    let jsonData = try JSONEncoder().encode(invalidRawValue)
     
-    #expect(throws: StatusError.invalidJWT.self) {
-      try JWT(compactJWT: invalidJWT)
+    #expect(throws: DecodingError.self) {
+      try JSONDecoder().decode(BitsPerStatus.self, from: jsonData)
     }
   }
 }
