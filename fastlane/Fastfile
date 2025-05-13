@@ -43,4 +43,39 @@ platform :ios do
     )
   end
   
+  desc "Code coverage"
+  lane :coverage do
+
+    FileUtils.remove_dir "../xcov_output", true
+    
+    params = {
+      package_path: '.',
+      scheme: 'StatiumSwift',
+      devices: ['iPhone 14'], 
+      output_directory: "xcov_output",
+      result_bundle: true,
+      parallel_testing: false,
+      xcodebuild_formatter: "xcbeautify"
+    }
+
+
+    if ENV['CI']
+      params[:xcargs] = "-skipPackagePluginValidation"
+    end
+
+
+    run_tests(params)
+
+    xcov(
+      scheme: "StatiumSwift",
+      output_directory: "xcov_output",
+      is_swift_package: true,     
+      include_targets: "StatiumSwift"
+    )
+
+    if ENV['CI'] != 'true'
+      sh 'open ../xcov_output/index.html'
+    end
+
+  end
 end

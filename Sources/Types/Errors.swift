@@ -15,7 +15,7 @@
  */
 import Foundation
 
-public enum StatusError: LocalizedError {
+public enum StatusError: LocalizedError, Equatable {
   case error(String)
   case badUrl
   case badServerResponse

@@ -15,7 +15,7 @@
  */
 import Foundation
 
-public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenFormat, URL) async -> Result<StatusListTokenClaims, StatusError>
+public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenFormat, URL, TimeInterval) async -> Result<StatusListTokenClaims, StatusError>
 
 /// A protocol that defines the necessary requirements for types that retrieve status information.
 ///
@@ -42,6 +42,7 @@ public protocol GetStatusType {
   /// - Parameter session: The `URLSession` used to perform the network request.
   /// - Parameter format: The format of the status list token, represented as a `StatusListTokenFormat`.
   /// - Parameter url: A `URL` that represents the source of the status list.
+  /// - Parameter clockSkew: The time tolerance applied during status validation.
   /// - Parameter fetchClaims: A `FetchClaimsHandler` a caller can pass.
   ///
   /// - Returns: A `Result` containing either a `CredentialStatus` if the operation succeeds, or a `StatusError` if it fails.
@@ -51,14 +52,16 @@ public protocol GetStatusType {
     index: Int,
     url: URL,
     format: StatusListTokenFormat,
-    fetchClaims: @escaping FetchClaimsHandler
+    fetchClaims: @escaping FetchClaimsHandler,
+    clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError>
   
   func getStatus(
     session: URLSession,
     reference: StatusReference,
     format: StatusListTokenFormat,
-    fetchClaims: @escaping FetchClaimsHandler
+    fetchClaims: @escaping FetchClaimsHandler,
+    clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError>
 }
 
@@ -78,13 +81,15 @@ public actor GetStatus: GetStatusType {
     index: Int,
     url: URL,
     format: StatusListTokenFormat = .jwt,
-    fetchClaims: @escaping FetchClaimsHandler
+    fetchClaims: @escaping FetchClaimsHandler,
+    clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError> {
     
     let result = await fetchClaims(
       session,
       format,
-      url
+      url,
+      clockSkew
     )
     
     switch result {
@@ -102,14 +107,16 @@ public actor GetStatus: GetStatusType {
     session: URLSession = .shared,
     reference: StatusReference,
     format: StatusListTokenFormat = .jwt,
-    fetchClaims: @escaping FetchClaimsHandler
+    fetchClaims: @escaping FetchClaimsHandler,
+    clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError> {
     await getStatus(
       session: session,
       index: reference.idx,
       url: reference.uri,
       format: format,
-      fetchClaims: fetchClaims
+      fetchClaims: fetchClaims,
+      clockSkew: clockSkew
     )
   }
   

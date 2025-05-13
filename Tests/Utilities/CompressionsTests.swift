@@ -19,6 +19,7 @@ import Compression
 
 @testable import StatiumSwift
 
+@Suite
 final class CompressionsTests {
   
   @Test

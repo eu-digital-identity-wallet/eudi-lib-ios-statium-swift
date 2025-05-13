@@ -21,7 +21,7 @@ public struct StatusListTokenClaims: Codable, Sendable {
   public let expirationTime: TimeInterval?
   public let timeToLive: TimeInterval?
   public let statusList: StatusList
-  
+
   public init(
     subject: String,
     issuedAt: TimeInterval,
