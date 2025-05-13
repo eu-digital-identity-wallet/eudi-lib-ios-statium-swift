@@ -37,6 +37,7 @@ public protocol StatusListTokenFetcherType {
   ///   - session: The `URLSession` instance used for network requests.
   ///   - format: The format of the status list token, either `.jwt` or `.cwt`.
   ///   - url: An optional `URL` pointing to the status list resource.
+  ///   - clockSkew: The time tolerance applied when validating the token.
   /// - Returns: A `Result` containing either the `StatusListTokenClaims` on success or a `StatusError` on failure.
   func getStatusClaims(
     session: URLSession,

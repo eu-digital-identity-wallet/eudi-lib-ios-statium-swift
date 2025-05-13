@@ -42,6 +42,7 @@ public protocol GetStatusType {
   /// - Parameter session: The `URLSession` used to perform the network request.
   /// - Parameter format: The format of the status list token, represented as a `StatusListTokenFormat`.
   /// - Parameter url: A `URL` that represents the source of the status list.
+  /// - Parameter clockSkew: The time tolerance applied during status validation.
   /// - Parameter fetchClaims: A `FetchClaimsHandler` a caller can pass.
   ///
   /// - Returns: A `Result` containing either a `CredentialStatus` if the operation succeeds, or a `StatusError` if it fails.
