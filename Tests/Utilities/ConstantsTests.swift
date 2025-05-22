@@ -16,5 +16,5 @@
 import Foundation
 
 struct ConstantsTests {
-  static let testStatusUrlString = "https://issuer.eudiw.dev/token_status_list/FC/eu.europa.ec.eudi.pid.1/b6ce44dc-d240-42e8-ada6-e62743ddc61f"
+  static let testStatusUrlString = "https://issuer.eudiw.dev/token_status_list/FC/urn:eudi:pid:1/81a0c83e-3525-4422-a069-f5f69ec965e2"
 }

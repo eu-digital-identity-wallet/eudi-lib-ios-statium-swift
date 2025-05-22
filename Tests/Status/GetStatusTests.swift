@@ -23,8 +23,19 @@ import Compression
 final class GetStatusTests {
   
   // Uncomment to run locally
+  @Test
+  func testDecodeStatusReference_WhenValidInputProvided_ThenReturnsCorrectStatusReference() async throws {
+    let statusReference = try #require(StatusReference(
+      idx: 1,
+      uriString: ConstantsTests.testStatusUrlString
+    ))
+    
+    #expect(statusReference.idx == 1)
+    #expect(statusReference.uri.absoluteString == ConstantsTests.testStatusUrlString)
+  }
+
   // @Test
-  func testStatusListToken() async throws {
+  func testGetStatusClaims_WhenValidStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
@@ -53,7 +64,7 @@ final class GetStatusTests {
   }
   
   // @Test
-  func testStatusListFlowValid() async throws {
+  func testGetStatus_WhenCalledWithValidStatusReference_ThenReturnsValidStatus() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
@@ -96,7 +107,7 @@ final class GetStatusTests {
   }
   
   // @Test
-  func testStatusListFlowValidWithStatusReference() async throws {
+  func testGetStatus_WhenCalledWithValidStatusReferenceObject_ThenReturnsValidStatus() async throws {
     
     let getStatus = GetStatus()
     let tokenFetcher = StatusListTokenFetcher(
@@ -121,11 +132,11 @@ final class GetStatusTests {
   }
   
   // @Test
-  func testStatusListFlowInvalid() async throws {
+  func testGetStatus_WhenCalledWithInvalidStatusReference_ThenReturnsFailure() async throws {
     
     guard let statusReference: StatusReference = .init(
-      idx: 2000,
-      uriString: ConstantsTests.testStatusUrlString
+      idx: 1,
+      uriString: "https://statium.com"
     ) else {
       Issue.record("Cannot decode status reference")
       return

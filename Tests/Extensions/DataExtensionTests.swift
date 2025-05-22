@@ -22,7 +22,7 @@ import Foundation
 final class DataExtensionTests {
   
   @Test
-  func testBase64URLDecodeValidString() throws {
+  func testBase64URLDecode_WhenValidBase64URLStringProvided_ThenReturnsDecodedData() throws {
     let base64URL = "SFMyNTY=!"
     
     do {
@@ -35,7 +35,7 @@ final class DataExtensionTests {
   }
   
   @Test
-  func testBase64URLDecodeInvalidString() throws {
+  func testBase64URLDecode_WhenInvalidBase64URLStringProvided_ThenThrowsInvalidJWTError() throws {
     let invalidBase64URL = "invalid.base64.string"
     
     #expect(throws: StatusError.invalidJWT.self) {
@@ -44,7 +44,7 @@ final class DataExtensionTests {
   }
   
   @Test
-  func testBase64URLDecodeEmptyString() throws {
+  func testBase64URLDecode_WhenEmptyStringProvided_ThenReturnsEmptyData() throws {
     let emptyBase64URL = ""
     let decodedData = try Data.base64URLDecode(emptyBase64URL)
     
