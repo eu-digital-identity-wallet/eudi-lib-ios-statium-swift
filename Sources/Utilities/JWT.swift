@@ -32,15 +32,11 @@ internal struct JWT {
     let payloadData = try Data.base64URLDecode(segments[1])
     let signatureData = try Data.base64URLDecode(segments[2])
     
-    do {
-      let headerJSON = try JSONSerialization.jsonObject(with: headerData, options: [])
-      guard let headerDict = headerJSON as? [String: Any] else {
-        throw StatusError.invalidJWT
-      }
-      self.header = headerDict
-    } catch {
+    let headerJSON = try? JSONSerialization.jsonObject(with: headerData, options: [])
+    guard let headerDict = headerJSON as? [String: Any] else {
       throw StatusError.invalidJWT
     }
+    self.header = headerDict
     
     self.payload = payloadData
     self.signature = signatureData

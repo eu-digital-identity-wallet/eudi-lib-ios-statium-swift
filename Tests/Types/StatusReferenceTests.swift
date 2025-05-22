@@ -22,7 +22,7 @@ import Foundation
 final class StatusReferenceTests {
   
   @Test
-  func testInitializationWithValidURLString() throws {
+  func testInit_WhenURLStringIsValid_ThenReturnsInstanceWithCorrectValues() throws {
     let statusReference = StatusReference(idx: 1, uriString: "https://statium.com")
     
     #expect(statusReference?.idx == 1)
@@ -30,7 +30,7 @@ final class StatusReferenceTests {
   }
   
   @Test
-  func testInitializationWithInvalidURLString() throws {
+  func testInit_WhenURLStringIsInvalid_ThenReturnsInstanceWithOriginalString() throws {
     let statusReference = StatusReference(idx: 1, uriString: "invalid_url_string")
     
     #expect(statusReference != nil)
@@ -38,7 +38,14 @@ final class StatusReferenceTests {
   }
   
   @Test
-  func testValidStatusReferenceDecoding() throws {
+  func testInit_WhenURLStringIsEmpty_ThenReturnsNil() throws {
+    let statusReference = StatusReference(idx: 1, uriString: "")
+    
+    #expect(statusReference == nil)
+  }
+  
+  @Test
+  func testDecodable_WhenJSONIsValid_ThenDecodesCorrectly() throws {
     let json = """
           {
               "idx": 1,
@@ -51,5 +58,20 @@ final class StatusReferenceTests {
     
     #expect(statusReference.idx == 1)
     #expect(statusReference.uri.absoluteString == "https://statium.com")
+  }
+
+  @Test
+  func testEncodable_WhenEncoded_ThenProducesCorrectJSON() throws {
+    let statusReference = StatusReference(idx: 1, uri: URL(string: "https://statium.com")!)
+    let encodedData = try JSONEncoder().encode(statusReference)
+    let jsonString = String(data: encodedData, encoding: .utf8)
+    
+    let expectedDict: [String: Any] = ["idx": 1, "uri": "https://statium.com"]
+    
+    let data = jsonString?.data(using: .utf8)!
+    let decodedDict = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any]
+    
+    #expect(decodedDict?["idx"] as? Int == expectedDict["idx"] as? Int)
+    #expect(decodedDict?["uri"] as? String == expectedDict["uri"] as? String)
   }
 }
