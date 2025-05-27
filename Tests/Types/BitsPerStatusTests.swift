@@ -22,7 +22,7 @@ import Foundation
 final class BitsPerStatusTests {
   
   @Test
-  func testBitsPerStatusEncoding() throws {
+  func testEncodeBitsPerStatus_WhenBitsPerStatusIsFour_ThenEncodesToExpectedRawValue() throws {
     
     let bitsPerStatus: BitsPerStatus = .four
     let encodedData = try JSONEncoder().encode(bitsPerStatus)
@@ -32,7 +32,7 @@ final class BitsPerStatusTests {
   }
   
   @Test
-  func testInvalidBitsPerStatusEncoding() throws {
+  func testDecodeBitsPerStatus_WhenRawValueIsInvalid_ThenThrowsDecodingError() throws {
     let invalidRawValue = 3
     let jsonData = try JSONEncoder().encode(invalidRawValue)
     

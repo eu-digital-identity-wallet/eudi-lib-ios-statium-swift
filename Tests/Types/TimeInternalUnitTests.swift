@@ -22,7 +22,7 @@ import Testing
 final class TimeInternalUnitTests {
   
   @Test
-  func testValueForAllCases() {
+  func testValue_WhenAccessedForEachCase_ThenReturnsCorrectSeconds() {
     #expect(TimeIntervalUnit.seconds.value == 1)
     #expect(TimeIntervalUnit.minutes.value == 60)
     #expect(TimeIntervalUnit.hours.value == 3600)
@@ -31,7 +31,7 @@ final class TimeInternalUnitTests {
   }
   
   @Test
-  func testToTimeIntervalWithMultiplier() {
+  func testToTimeInterval_WhenGivenMultiplier_ThenReturnsCorrectTimeInterval() {
     #expect(TimeIntervalUnit.seconds.toTimeInterval(multiplier: 5) == 5)
     #expect(TimeIntervalUnit.minutes.toTimeInterval(multiplier: 2) == 120)
     #expect(TimeIntervalUnit.hours.toTimeInterval(multiplier: 0.5) == 1800)

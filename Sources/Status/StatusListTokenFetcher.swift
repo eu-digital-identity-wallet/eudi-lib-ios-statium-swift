@@ -139,13 +139,13 @@ private extension StatusListTokenFetcher {
   }
   
   func getAndEnsureClaims(
-    _ jwt: String,
+    _ jwtString: String,
     _ uri: String,
     _ date: Date,
     _ clockSkew: TimeInterval
   ) throws -> StatusListTokenClaims {
     let jwt = try JWT(
-      compactJWT: jwt
+      compactJWT: jwtString
     )
     
     let claims = try JSONDecoder().decode(
