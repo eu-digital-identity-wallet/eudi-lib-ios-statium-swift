@@ -15,8 +15,6 @@
  */
 import Foundation
 
-import Foundation
-
 internal struct JWT {
   let header: [String: Any]
   let payload: Data
@@ -61,4 +59,3 @@ extension Data {
     return data
   }
 }
-

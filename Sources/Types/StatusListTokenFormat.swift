@@ -29,7 +29,6 @@ public enum StatusListTokenFormat: Sendable {
   case cwt
 }
 
-
 public extension StatusListTokenFormat {
   var fieldHeaderValue: String {
     switch self {

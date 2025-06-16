@@ -41,4 +41,3 @@ public struct TokenStatusListSpec {
   public static let mediaSubtypeStatusListCWT: String = "statuslist+cwt"
   public static let mediaTypeApplicationStatusListCWT: String = "application/\(Self.mediaSubtypeStatusListCWT)"
 }
-

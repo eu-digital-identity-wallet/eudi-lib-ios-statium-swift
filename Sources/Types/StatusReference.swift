@@ -67,4 +67,3 @@ public struct StatusReference: Codable, Sendable {
     try container.encode(uri.absoluteString, forKey: .uri)
   }
 }
-
