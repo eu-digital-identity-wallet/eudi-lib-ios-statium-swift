@@ -16,7 +16,7 @@
 import Foundation
 
 public protocol StatusListTokenFetcherType {
-  
+
   /// Initializes an object that conforms to `StatusListTokenFetcherType` with the provided `verifier` and `date`.
   ///
   /// - Parameter verifier: An object responsible for verifying the status list token's signature.
@@ -30,7 +30,7 @@ public protocol StatusListTokenFetcherType {
     verifier: any VerifyStatusListTokenSignature,
     date: Date
   )
-  
+
   /// Retrieves the status list token claims from the given URL.
   ///
   /// - Parameters:
@@ -48,11 +48,11 @@ public protocol StatusListTokenFetcherType {
 }
 
 public actor StatusListTokenFetcher: StatusListTokenFetcherType {
-  
+
   public let networkingService: any NetworkingServiceType
   public let verifier: any VerifyStatusListTokenSignature
   public let date: Date
-  
+
   public init(
     networkingService: NetworkingServiceType = NetworkingService(),
     verifier: any VerifyStatusListTokenSignature,
@@ -62,7 +62,7 @@ public actor StatusListTokenFetcher: StatusListTokenFetcherType {
     self.verifier = verifier
     self.date = date
   }
-  
+
   public func getStatusClaims(
     session: URLSession = .shared,
     format: StatusListTokenFormat = .jwt,
@@ -80,13 +80,13 @@ private extension StatusListTokenFetcher {
     url: URL,
     clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError> {
-    
+
     guard format == .jwt else { return .failure(.cwtNotSupported) }
-    
+
     let jwtResult = await fetchJWT(
       from: url, format: format
     )
-    
+
     return switch jwtResult {
     case .failure(let error):
         .failure(error)
@@ -100,19 +100,19 @@ private extension StatusListTokenFetcher {
       )
     }
   }
-  
+
   private func fetchJWT(
     from url: URL,
     format: StatusListTokenFormat
   ) async -> Result<String, StatusError> {
-    
+
     let result = await networkingService.get(
       url: url,
       headers: [
         "Accept": format.fieldHeaderValue
       ]
     )
-    
+
     switch result {
     case .success(let string):
       return .success(string)
@@ -120,7 +120,7 @@ private extension StatusListTokenFetcher {
       return .failure(StatusError.error(error.localizedDescription))
     }
   }
-  
+
   private func processJWT(
     _ jwt: String,
     verifier: VerifyStatusListTokenSignature,
@@ -131,13 +131,13 @@ private extension StatusListTokenFetcher {
     do {
       let claims = try getAndEnsureClaims(jwt, sourceURL, date, clockSkew)
       try verifier.verify(statusListToken: jwt, format: format, at: date)
-      
+
       return .success(claims)
     } catch {
       return .failure(.error(error.localizedDescription))
     }
   }
-  
+
   func getAndEnsureClaims(
     _ jwt: String,
     _ uri: String,
@@ -147,17 +147,17 @@ private extension StatusListTokenFetcher {
     let jwt = try JWT(
       compactJWT: jwt
     )
-    
+
     let claims = try JSONDecoder().decode(
       StatusListTokenClaims.self,
       from: jwt.payload
     )
-    
+
     let header = jwt.header["typ"] as? String
     if header != TokenStatusListSpec.mediaSubtypeStatusListJWT {
       throw StatusError.badJwtHeader
     }
-    
+
     return try claims.ensureValid(uri: uri, date: date, clockSkew: clockSkew)
   }
 }
@@ -171,7 +171,7 @@ extension StatusListTokenClaims {
     if uri != self.subject {
       throw StatusError.badSubject(self.subject)
     }
-    
+
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
       /*
@@ -180,7 +180,7 @@ extension StatusListTokenClaims {
        }
        */
     }
-    
+
     let iat = issuedAt
     let iatDate = Date(timeIntervalSince1970: iat)
     /*

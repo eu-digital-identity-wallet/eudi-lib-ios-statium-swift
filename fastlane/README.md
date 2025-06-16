@@ -31,10 +31,18 @@ Runs unit tests
 
 Builds the package
 
-### ios coverage
+### ios lint_fix
 
 ```sh
-[bundle exec] fastlane ios coverage
+[bundle exec] fastlane ios lint_fix
+```
+
+Fix lint issues
+
+### ios code_coverage
+
+```sh
+[bundle exec] fastlane ios code_coverage
 ```
 
 Code coverage

@@ -20,22 +20,22 @@ import Foundation
 
 @Suite
 final class BitsPerStatusTests {
-  
+
   @Test
   func testBitsPerStatusEncoding() throws {
-    
+
     let bitsPerStatus: BitsPerStatus = .four
     let encodedData = try JSONEncoder().encode(bitsPerStatus)
     let decodedValue = try JSONDecoder().decode(Int.self, from: encodedData)
-    
+
     #expect(decodedValue == bitsPerStatus.rawValue)
   }
-  
+
   @Test
   func testInvalidBitsPerStatusEncoding() throws {
     let invalidRawValue = 3
     let jsonData = try JSONEncoder().encode(invalidRawValue)
-    
+
     #expect(throws: DecodingError.self) {
       try JSONDecoder().decode(BitsPerStatus.self, from: jsonData)
     }

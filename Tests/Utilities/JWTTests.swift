@@ -20,58 +20,58 @@ import Foundation
 
 @Suite
 final class JWTTests {
-  
+
   @Test
   func testValidJWTDecoding() throws {
     let validJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-    
+
     let jwt = try JWT(compactJWT: validJWT)
-    
+
     if let alg = jwt.header["alg"] as? String {
       #expect(alg == "HS256")
     }
   }
-  
+
   @Test
   func testInvalidJWTDecoding() throws {
     let invalidJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try JWT(compactJWT: invalidJWT)
     }
   }
-  
+
   @Test
   func testInvalidJWTDecodingUsingTwoSegments() throws {
     let invalidJWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try JWT(compactJWT: invalidJWT)
     }
   }
-  
+
   @Test
   func testInvalidJWTDecodingUsingThreeSegments() throws {
     let invalidJWT = "eyJhbGciOiJIUzI1NIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMef36POk6yJV_adQssw5c"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try JWT(compactJWT: invalidJWT)
     }
   }
-  
+
   @Test
   func testInvalidJWTDecodingWithCorruptedBase64() throws {
     let invalidJWT = "invalid-@@.jwt.signature"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try JWT(compactJWT: invalidJWT)
     }
   }
-  
+
   @Test
   func testInvalidJWTDecodingWithInvalidJSONHeader() throws {
     let invalidJWT = "aW52YWxpZA.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try JWT(compactJWT: invalidJWT)
     }

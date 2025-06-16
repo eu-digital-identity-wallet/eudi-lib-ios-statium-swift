@@ -21,13 +21,13 @@ import Foundation
 /// This actor takes a `BitsPerStatus` object and a byte array, and offers a method to retrieve
 /// a specific status byte at a given index, factoring in bit positions for the status bytes.
 public actor ReadStatus {
-  
+
   /// The number of bits used per status in the byte array.
   public let bitsPerStatus: BitsPerStatus
-  
+
   /// The byte array containing the status data.
   public let byteArray: [UInt8]
-  
+
   /// Initializes a `ReadStatus` actor with the given `BitsPerStatus` and byte array.
   ///
   /// - Parameters:
@@ -39,7 +39,7 @@ public actor ReadStatus {
     self.bitsPerStatus = bitsPerStatus
     self.byteArray = byteArray
   }
-  
+
   /// Reads the status at the specified index from the byte array.
   ///
   /// The function uses the `bitsPerStatus` to calculate the byte and bit positions of the status
@@ -55,22 +55,22 @@ public actor ReadStatus {
   /// print(status) // Prints the byte value at index 2
   /// ```
   public func readStatus(at index: Int) -> Byte? {
-    
+
     // Ensure the index is non-negative.
     guard index >= .zero else {
       return nil
     }
-    
+
     // Calculate the byte and bit position for the given index.
     let (bytePosition, bitPosition) = bitsPerStatus.byteAndBitPosition(
       index: UInt(index)
     )
-    
+
     // Attempt to retrieve the byte from the byte array.
     guard let byte = byteArray[safe: Int(bytePosition)] else {
       return nil
     }
-    
+
     // Read the status byte based on the bit position.
     let status = bitsPerStatus.readStatusByte(
       statusByte: byte,
@@ -81,7 +81,7 @@ public actor ReadStatus {
 }
 
 extension BitsPerStatus {
-  
+
   /// Calculates the byte position and bit position for a given status index.
   ///
   /// This function breaks down the index into a byte position and a bit position
@@ -100,7 +100,7 @@ extension BitsPerStatus {
     }()
     return (bytePosition, bitPosition)
   }
-  
+
   /// Reads a status byte at a specific bit position within the byte.
   ///
   /// This function extracts the status value from a byte by applying a bit mask
@@ -121,7 +121,7 @@ extension BitsPerStatus {
     case .four: 0b00001111
     case .eight: 0b11111111
     }
-    
+
     // Use the bit mask to isolate the relevant status bit and shift it to the right.
     let statusValue = (Int(statusByte) & (baseMask << bitPosition)) >> bitPosition
     return Byte(statusValue)

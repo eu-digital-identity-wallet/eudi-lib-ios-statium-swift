@@ -20,19 +20,19 @@ import Foundation
 /// The enum defines the allowed bit sizes for status values, which are typically used to control
 /// the size of each status in a byte array. The possible values are 1, 2, 4, and 8 bits per status.
 public enum BitsPerStatus: Int, Codable, Sendable {
-  
+
   /// Represents 1 bit per status.
   case one = 1
-  
+
   /// Represents 2 bits per status.
   case two = 2
-  
+
   /// Represents 4 bits per status.
   case four = 4
-  
+
   /// Represents 8 bits per status.
   case eight = 8
-  
+
   /// Custom decoding to ensure that only valid values (1, 2, 4, 8) are allowed.
   ///
   /// This initializer allows `BitsPerStatus` to be decoded from an external data source. If the decoded
@@ -44,7 +44,7 @@ public enum BitsPerStatus: Int, Codable, Sendable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()
     let value = try container.decode(Int.self)
-    
+
     // Ensure the decoded value matches one of the valid cases
     guard
       let validCase = BitsPerStatus(rawValue: value)
@@ -56,7 +56,7 @@ public enum BitsPerStatus: Int, Codable, Sendable {
     }
     self = validCase
   }
-  
+
   /// Custom encoding to encode the raw value of `BitsPerStatus`.
   ///
   /// This method encodes the raw integer value (1, 2, 4, or 8) when encoding a `BitsPerStatus` to an external

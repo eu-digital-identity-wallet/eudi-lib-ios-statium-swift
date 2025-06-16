@@ -15,16 +15,13 @@
  */
 import Foundation
 
-import Foundation
-
-/// The registered status types
 public enum CredentialStatus: Equatable, Sendable {
   case valid
   case invalid
   case suspended
   case applicationSpecific(UInt8)
   case reserved(UInt8)
-  
+
   /// Converts the status to a Byte representation
   public func toByte() -> UInt8 {
     switch self {
@@ -35,7 +32,7 @@ public enum CredentialStatus: Equatable, Sendable {
     case .reserved(let value): return value
     }
   }
-  
+
   /// Creates a `Status` given a `value`.
   public static func fromByte(_ value: UInt8) -> CredentialStatus {
     if value == TokenStatusListSpec.statusValid { return .valid }
@@ -44,7 +41,7 @@ public enum CredentialStatus: Equatable, Sendable {
     if isApplicationSpecific(value) { return .applicationSpecific(value) }
     return .reserved(value)
   }
-  
+
   /// Checks if the given `value` is application-specific
   private static func isApplicationSpecific(_ value: UInt8) -> Bool {
     let range = TokenStatusListSpec.statusApplicationSpecificRangeStart...TokenStatusListSpec.statusApplicationSpecificRangeEnd
@@ -52,5 +49,3 @@ public enum CredentialStatus: Equatable, Sendable {
     range.contains(value)
   }
 }
-
-

@@ -43,8 +43,13 @@ platform :ios do
     )
   end
   
+  desc "Fix lint issues"
+  lane :lint_fix do
+    sh "swiftlint lint --fix --config ../.swiftlint.yml --quiet ../"
+  end
+
   desc "Code coverage"
-  lane :coverage do
+  lane :code_coverage do
 
     FileUtils.remove_dir "../xcov_output", true
     

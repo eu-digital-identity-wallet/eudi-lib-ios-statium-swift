@@ -20,7 +20,7 @@ import Testing
 
 @Suite
 final class TimeInternalUnitTests {
-  
+
   @Test
   func testValueForAllCases() {
     #expect(TimeIntervalUnit.seconds.value == 1)
@@ -29,7 +29,7 @@ final class TimeInternalUnitTests {
     #expect(TimeIntervalUnit.days.value == 86400)
     #expect(TimeIntervalUnit.weeks.value == 604800)
   }
-  
+
   @Test
   func testToTimeIntervalWithMultiplier() {
     #expect(TimeIntervalUnit.seconds.toTimeInterval(multiplier: 5) == 5)
@@ -39,4 +39,3 @@ final class TimeInternalUnitTests {
     #expect(TimeIntervalUnit.weeks.toTimeInterval(multiplier: 1) == 604800)
   }
 }
-

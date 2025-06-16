@@ -23,22 +23,22 @@ public protocol DecompressibleType: Sendable {
 }
 
 public struct Decompressible: DecompressibleType {
-  
+
   public typealias Decompressed = Data
 
   public var data: Data
-  
+
   public init(data: Data) {
     self.data = data
   }
-  
+
   public init() {
     self.data = Data()
   }
-  
+
   public mutating func setData(_ data: Data) {
     self.data = data
   }
-  
+
   public func decompress() -> Data { data.decompressed }
 }

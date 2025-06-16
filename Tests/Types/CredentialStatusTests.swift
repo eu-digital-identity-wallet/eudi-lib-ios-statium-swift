@@ -20,68 +20,67 @@ import Foundation
 
 @Suite
 final class CredentialStatusTests {
-  
+
   @Test
   func testValidStatus() {
     let status = CredentialStatus.valid
     #expect(status.toByte() == 0x00)
   }
-  
+
   @Test
   func testInvalidStatus() {
     let status = CredentialStatus.invalid
     #expect(status.toByte() == 0x01)
   }
-  
+
   @Test
   func testSuspendedStatus() {
     let status = CredentialStatus.suspended
     #expect(status.toByte() == 0x02)
   }
-  
+
   @Test
   func testSpecificStatus() {
     let value: UInt8 = 100
     let status = CredentialStatus.applicationSpecific(value)
     #expect(status.toByte() == value)
   }
-  
+
   @Test
   func testReservedStatus() {
     let value: UInt8 = 200
     let status = CredentialStatus.reserved(value)
     #expect(status.toByte() == value)
   }
-  
+
   @Test
   func testValidByte() {
     let byte: UInt8 = 0x00
     let status = CredentialStatus.fromByte(byte)
     #expect(status == .valid)
   }
-  
+
   @Test
   func testInvalidByte() {
     let byte: UInt8 = 0x01
     let status = CredentialStatus.fromByte(byte)
     #expect(status == .invalid)
   }
-  
-  
+
   @Test
   func testSuspendedByte() {
     let byte: UInt8 = 0x02
     let status = CredentialStatus.fromByte(byte)
     #expect(status == .suspended)
   }
-  
+
   @Test
   func testSpecificByte() {
     let byte: UInt8 = 0x03
     let status = CredentialStatus.fromByte(byte)
     #expect(status ==  .applicationSpecific(byte))
   }
-  
+
   @Test
   func testReservedByte() {
     let byte: UInt8 = 0x04

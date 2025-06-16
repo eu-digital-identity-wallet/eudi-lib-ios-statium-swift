@@ -28,27 +28,27 @@ import Foundation
 public struct StatusReference: Codable, Sendable {
   public let idx: Int
   public let uri: URL
-  
+
   public init(idx: Int, uri: URL) {
     self.idx = idx
     self.uri = uri
   }
-  
+
   public init?(idx: Int, uriString: String) {
     guard let url = URL(string: uriString) else { return nil }
     self.idx = idx
     self.uri = url
   }
-  
+
   private enum CodingKeys: String, CodingKey {
     case idx
     case uri
   }
-  
+
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.idx = try container.decode(Int.self, forKey: .idx)
-    
+
     let uriString = try container.decode(String.self, forKey: .uri)
     guard let uri = URL(string: uriString) else {
       throw DecodingError.dataCorruptedError(
@@ -57,14 +57,13 @@ public struct StatusReference: Codable, Sendable {
         debugDescription: "Invalid URL format"
       )
     }
-    
+
     self.uri = uri
   }
-  
+
   public func encode(to encoder: Encoder) throws {
     var container = encoder.container(keyedBy: CodingKeys.self)
     try container.encode(idx, forKey: .idx)
     try container.encode(uri.absoluteString, forKey: .uri)
   }
 }
-

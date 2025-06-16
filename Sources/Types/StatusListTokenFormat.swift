@@ -21,14 +21,13 @@ import Foundation
 /// CWT format. It is used to distinguish between these two token formats in scenarios
 /// where the token format affects processing or validation.
 public enum StatusListTokenFormat: Sendable {
-  
+
   /// Represents the JSON Web Token (JWT) format.
   case jwt
-  
+
   /// Represents the CWT format.
   case cwt
 }
-
 
 public extension StatusListTokenFormat {
   var fieldHeaderValue: String {

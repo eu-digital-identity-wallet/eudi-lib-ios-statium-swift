@@ -20,23 +20,23 @@ import Foundation
 
 @Suite
 final class StatusReferenceTests {
-  
+
   @Test
   func testInitializationWithValidURLString() throws {
     let statusReference = StatusReference(idx: 1, uriString: "https://statium.com")
-    
+
     #expect(statusReference?.idx == 1)
     #expect(statusReference?.uri.absoluteString == "https://statium.com")
   }
-  
+
   @Test
   func testInitializationWithInvalidURLString() throws {
     let statusReference = StatusReference(idx: 1, uriString: "invalid_url_string")
-    
+
     #expect(statusReference != nil)
     #expect(statusReference?.uri.absoluteString == "invalid_url_string")
   }
-  
+
   @Test
   func testValidStatusReferenceDecoding() throws {
     let json = """
@@ -45,10 +45,10 @@ final class StatusReferenceTests {
               "uri": "https://statium.com"
           }
           """
-    
+
     let data = json.data(using: .utf8)!
     let statusReference = try JSONDecoder().decode(StatusReference.self, from: data)
-    
+
     #expect(statusReference.idx == 1)
     #expect(statusReference.uri.absoluteString == "https://statium.com")
   }

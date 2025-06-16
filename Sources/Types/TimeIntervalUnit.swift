@@ -27,7 +27,7 @@ public enum TimeIntervalUnit {
   case days
   /// Represents weeks as a unit of time.
   case weeks
-  
+
   /// The raw time interval value in seconds for the unit.
   ///
   /// - `seconds` = 1
@@ -49,7 +49,7 @@ public enum TimeIntervalUnit {
       return 60 * 60 * 24 * 7
     }
   }
-  
+
   /// Converts the unit to a `TimeInterval` using the given multiplier.
   ///
   /// - Parameter multiplier: A `Double` value that multiplies the base unit. Defaults to `1.0`.

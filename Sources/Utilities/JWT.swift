@@ -15,23 +15,21 @@
  */
 import Foundation
 
-import Foundation
-
 internal struct JWT {
   let header: [String: Any]
   let payload: Data
   let signature: Data?
-  
+
   init(compactJWT: String) throws {
     let segments = compactJWT.components(separatedBy: ".")
     guard segments.count == 3 else {
       throw StatusError.invalidJWT
     }
-    
+
     let headerData = try Data.base64URLDecode(segments[0])
     let payloadData = try Data.base64URLDecode(segments[1])
     let signatureData = try Data.base64URLDecode(segments[2])
-    
+
     do {
       let headerJSON = try JSONSerialization.jsonObject(with: headerData, options: [])
       guard let headerDict = headerJSON as? [String: Any] else {
@@ -41,7 +39,7 @@ internal struct JWT {
     } catch {
       throw StatusError.invalidJWT
     }
-    
+
     self.payload = payloadData
     self.signature = signatureData
   }
@@ -52,17 +50,16 @@ extension Data {
     var base64 = str
       .replacingOccurrences(of: "-", with: "+")
       .replacingOccurrences(of: "_", with: "/")
-    
+
     let paddingLength = 4 - base64.count % 4
     if paddingLength < 4 {
       base64 += String(repeating: "=", count: paddingLength)
     }
-    
+
     guard let data = Data(base64Encoded: base64) else {
       throw StatusError.invalidJWT
     }
-    
+
     return data
   }
 }
-

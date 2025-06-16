@@ -19,7 +19,7 @@ public struct StatusList: Codable, Sendable {
   public let bytesPerStatus: BitsPerStatus
   public let compressedList: String
   public let aggregationUri: String?
-  
+
   public init(
     bytesPerStatus: BitsPerStatus,
     compressedList: String,
@@ -29,8 +29,8 @@ public struct StatusList: Codable, Sendable {
     self.compressedList = compressedList
     self.aggregationUri = aggregationUri
   }
-  
-  public enum CodingKeys : String, CodingKey {
+
+  public enum CodingKeys: String, CodingKey {
     case bytesPerStatus = "bits"
     case compressedList = "lst"
     case aggregationUri = "aggregation_uri"

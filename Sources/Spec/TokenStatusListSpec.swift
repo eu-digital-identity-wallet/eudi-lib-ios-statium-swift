@@ -18,7 +18,7 @@ import Foundation
 //// [Token Status List](https://www.ietf.org/archive/id/draft-ietf-oauth-status-list-10.html)
 public struct TokenStatusListSpec {
   public static let version: String = "draft-10"
-  
+
   public static let status: String = "status"
   public static let statusList: String = "status_list"
   public static let idx: String = "idx"
@@ -28,17 +28,16 @@ public struct TokenStatusListSpec {
   public static let aggregationUri: String = "aggregation_uri"
   public static let timeToLive: String = "ttl"
   public static let time: String = "time"
-  
+
   public static let statusValid: Byte = 0x00
   public static let statusInvalid: Byte = 0x01
   public static let statusSuspended: Byte = 0x02
   public static let statusApplicationSpecific: Byte = 0x03
   public static let statusApplicationSpecificRangeStart: Byte = 0x0b
   public static let statusApplicationSpecificRangeEnd: Byte = 0x0f
-  
+
   public static let mediaSubtypeStatusListJWT: String = "statuslist+jwt"
   public static let mediaTypeApplicationStatusListJWT: String = "application/\(Self.mediaSubtypeStatusListJWT)"
   public static let mediaSubtypeStatusListCWT: String = "statuslist+cwt"
   public static let mediaTypeApplicationStatusListCWT: String = "application/\(Self.mediaSubtypeStatusListCWT)"
 }
-

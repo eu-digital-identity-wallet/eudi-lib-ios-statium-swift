@@ -28,24 +28,24 @@ public protocol NetworkingServiceType: Sendable {
 }
 
 public actor NetworkingService: NetworkingServiceType {
-  
+
   public let session: URLSession
-  
+
   public init(session: URLSession = .shared) {
     self.session = session
   }
-  
+
   public func get(
     url: URL,
     headers: [String: String]
   ) async -> Result<String, NetworkingError> {
-    
+
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
     for (key, value) in headers {
       request.setValue(value, forHTTPHeaderField: key)
     }
-    
+
     do {
       let (data, response) = try await session.data(for: request)
       guard
@@ -57,15 +57,15 @@ public actor NetworkingService: NetworkingServiceType {
           )
         )
       }
-      
+
       guard let string = String(data: data, encoding: .utf8) else {
         return .failure(
           .error("Failed to decode JWT from response")
         )
       }
-      
+
       return .success(string)
-      
+
     } catch {
       return .failure(
         .error(
@@ -75,4 +75,3 @@ public actor NetworkingService: NetworkingServiceType {
     }
   }
 }
-

@@ -17,7 +17,7 @@ import Foundation
 import Compression
 
 public extension Data {
-  
+
   /// Decompresses the data using the ZLIB compression algorithm.
   ///
   /// This computed property attempts to decompress the data (excluding the first two bytes, which are assumed to be part of the ZLIB header).
@@ -45,12 +45,12 @@ public extension Data {
         nil,
         COMPRESSION_ZLIB
       )
-      return Data(bytes: buffer, count:read)
+      return Data(bytes: buffer, count: read)
     })
     buffer.deallocate()
     return result
   }
-  
+
   /// Decodes a Base64URL string into a byte array ([UInt8]).
   /// - Parameter base64Url: The Base64URL encoded string.
   /// - Returns: An optional `[UInt8]` array if decoding is successful.
@@ -58,17 +58,14 @@ public extension Data {
     var base64 = base64Url
       .replacingOccurrences(of: "-", with: "+")
       .replacingOccurrences(of: "_", with: "/")
-    
+
     // Add padding if necessary
     let paddingLength = (4 - (base64.count % 4)) % 4
     base64 += String(repeating: "=", count: paddingLength)
-    
+
     // Convert to Data
     guard let data = Data(base64Encoded: base64) else { return nil }
-    
+
     return [UInt8](data)
   }
 }
-
-
-

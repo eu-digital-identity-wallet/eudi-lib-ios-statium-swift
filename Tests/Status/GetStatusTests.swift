@@ -21,11 +21,11 @@ import Compression
 
 @Suite
 final class GetStatusTests {
-  
+
   // Uncomment to run locally
   // @Test
   func testStatusListToken() async throws {
-    
+
     guard let statusReference: StatusReference = .init(
       idx: 1,
       uriString: ConstantsTests.testStatusUrlString
@@ -33,17 +33,17 @@ final class GetStatusTests {
       Issue.record("Cannot decode status reference")
       return
     }
-    
+
     let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make(),
       date: Date()
     )
-    
+
     let result = await tokenFetcher.getStatusClaims(
       url: statusReference.uri,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
-    
+
     switch result {
     case .success:
       #expect(true)
@@ -51,10 +51,10 @@ final class GetStatusTests {
       Issue.record("Invalid status")
     }
   }
-  
+
   // @Test
   func testStatusListFlowValid() async throws {
-    
+
     guard let statusReference: StatusReference = .init(
       idx: 1,
       uriString: ConstantsTests.testStatusUrlString
@@ -62,19 +62,19 @@ final class GetStatusTests {
       Issue.record("Cannot decode status reference")
       return
     }
-    
+
     let getStatus = GetStatus()
     let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
-    
+
     let result = await getStatus.getStatus(
       index: statusReference.idx,
       url: statusReference.uri,
       fetchClaims: tokenFetcher.getStatusClaims,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
-    
+
     switch result {
     case .success(let status):
       switch status {
@@ -89,20 +89,20 @@ final class GetStatusTests {
       case .reserved:
         Issue.record("Invalid status")
       }
-      
+
     case .failure:
       Issue.record("Invalid status")
     }
   }
-  
+
   // @Test
   func testStatusListFlowValidWithStatusReference() async throws {
-    
+
     let getStatus = GetStatus()
     let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
-    
+
     let result = await getStatus.getStatus(
       reference: .init(
         idx: 1,
@@ -111,7 +111,7 @@ final class GetStatusTests {
       fetchClaims: tokenFetcher.getStatusClaims,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
-    
+
     switch result {
     case .success(let status):
       #expect(status == .valid)
@@ -119,10 +119,10 @@ final class GetStatusTests {
       Issue.record("Invalid status")
     }
   }
-  
+
   // @Test
   func testStatusListFlowInvalid() async throws {
-    
+
     guard let statusReference: StatusReference = .init(
       idx: 2000,
       uriString: ConstantsTests.testStatusUrlString
@@ -130,19 +130,19 @@ final class GetStatusTests {
       Issue.record("Cannot decode status reference")
       return
     }
-    
+
     let getStatus = GetStatus()
     let tokenFetcher = StatusListTokenFetcher(
       verifier: VerifyStatusListTokenSignatureFactory.make()
     )
-    
+
     let result = await getStatus.getStatus(
       index: statusReference.idx,
       url: statusReference.uri,
       fetchClaims: tokenFetcher.getStatusClaims,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
-    
+
     switch result {
     case .success:
       Issue.record("Invalid status")

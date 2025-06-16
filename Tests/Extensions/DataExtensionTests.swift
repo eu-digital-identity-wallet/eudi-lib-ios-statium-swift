@@ -20,11 +20,11 @@ import Foundation
 
 @Suite
 final class DataExtensionTests {
-  
+
   @Test
   func testBase64URLDecodeValidString() throws {
     let base64URL = "SFMyNTY=!"
-    
+
     do {
       let decodedData = try Data.base64URLDecode(base64URL)
       let decodedString = String(data: decodedData, encoding: .utf8)
@@ -33,21 +33,21 @@ final class DataExtensionTests {
       #expect(true, "Caught error: \(error). Expected successful decoding.")
     }
   }
-  
+
   @Test
   func testBase64URLDecodeInvalidString() throws {
     let invalidBase64URL = "invalid.base64.string"
-    
+
     #expect(throws: StatusError.invalidJWT.self) {
       try Data.base64URLDecode(invalidBase64URL)
     }
   }
-  
+
   @Test
   func testBase64URLDecodeEmptyString() throws {
     let emptyBase64URL = ""
     let decodedData = try Data.base64URLDecode(emptyBase64URL)
-    
+
     #expect(decodedData.count == 0)
   }
 }

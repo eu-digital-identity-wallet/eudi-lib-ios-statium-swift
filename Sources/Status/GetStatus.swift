@@ -22,7 +22,7 @@ public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenForm
 /// Conforming types are expected to provide a `VerifyStatusListTokenSignature`
 /// and a `Date`, as well as a method to fetch a status asynchronously based on an index, session, format, and URL.
 public protocol GetStatusType {
-  
+
   /// Initializes an object that conforms to `GetStatusType`.
   ///
   /// - Parameter decompressible: Used to decompress bytes.
@@ -32,7 +32,7 @@ public protocol GetStatusType {
   init(
     decompressible: any DecompressibleType
   )
-  
+
   /// Fetches the status information asynchronously for a given index.
   ///
   /// This method retrieves the status for a specific index, given a URL session, token format, and URL.
@@ -55,7 +55,7 @@ public protocol GetStatusType {
     fetchClaims: @escaping FetchClaimsHandler,
     clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError>
-  
+
   func getStatus(
     session: URLSession,
     reference: StatusReference,
@@ -65,17 +65,16 @@ public protocol GetStatusType {
   ) async -> Result<CredentialStatus, StatusError>
 }
 
-
 public actor GetStatus: GetStatusType {
-  
+
   public var decompressible: any DecompressibleType
-  
+
   public init(
     decompressible: any DecompressibleType = Decompressible()
   ) {
     self.decompressible = decompressible
   }
-  
+
   public func getStatus(
     session: URLSession = .shared,
     index: Int,
@@ -84,14 +83,14 @@ public actor GetStatus: GetStatusType {
     fetchClaims: @escaping FetchClaimsHandler,
     clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError> {
-    
+
     let result = await fetchClaims(
       session,
       format,
       url,
       clockSkew
     )
-    
+
     switch result {
     case .failure(let error):
       return .failure(error)
@@ -102,7 +101,7 @@ public actor GetStatus: GetStatusType {
       )
     }
   }
-  
+
   public func getStatus(
     session: URLSession = .shared,
     reference: StatusReference,
@@ -119,24 +118,24 @@ public actor GetStatus: GetStatusType {
       clockSkew: clockSkew
     )
   }
-  
+
   private func processStatusClaims(_ claims: StatusListTokenClaims, index: Int) async -> Result<CredentialStatus, StatusError> {
     guard let decodedBytes = Data.fromBase64URL(claims.statusList.compressedList) else {
       return .failure(.badBytes)
     }
-    
+
     decompressible.setData(Data(decodedBytes))
     let decompressedBytes = decompressible.decompress()
-    
+
     let statusByte = ReadStatus(
       bitsPerStatus: claims.statusList.bytesPerStatus,
       byteArray: [Byte](decompressedBytes)
     )
-    
+
     if let byte = await statusByte.readStatus(at: index) {
       return .success(CredentialStatus.fromByte(byte))
     }
-    
+
     return .failure(.badBytes)
   }
 }
