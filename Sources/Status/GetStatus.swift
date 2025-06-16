@@ -65,7 +65,6 @@ public protocol GetStatusType {
   ) async -> Result<CredentialStatus, StatusError>
 }
 
-
 public actor GetStatus: GetStatusType {
   
   public var decompressible: any DecompressibleType

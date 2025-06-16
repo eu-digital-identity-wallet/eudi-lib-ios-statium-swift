@@ -67,7 +67,6 @@ final class CredentialStatusTests {
     #expect(status == .invalid)
   }
   
-  
   @Test
   func testFromByte_WhenByteIsTwo_ThenReturnsSuspended() {
     let byte: UInt8 = 0x02

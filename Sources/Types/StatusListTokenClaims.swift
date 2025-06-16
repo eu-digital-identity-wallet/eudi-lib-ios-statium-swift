@@ -36,7 +36,7 @@ public struct StatusListTokenClaims: Codable, Sendable {
     self.statusList = statusList
   }
   
-  public enum CodingKeys : String, CodingKey {
+  public enum CodingKeys: String, CodingKey {
     case subject = "sub"
     case issuedAt = "iat"
     case expirationTime = "exp"

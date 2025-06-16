@@ -37,7 +37,7 @@ final class ReadStatusTests {
     // Status at index 7: 1 (leftmost bit)
     
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0xaa])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: 0)
     #expect(result == 0)
@@ -70,7 +70,7 @@ final class ReadStatusTests {
     // Byte 0: 10101010 (0xAA)
     // Byte 1: 11001100 (0xCC)
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0xaa, 0xcc])
-    var result: Byte? = nil
+    var result: Byte?
     
     // First byte (index 0-7)
     result = await readStatus.readStatus(at: 0)
@@ -133,7 +133,7 @@ final class ReadStatusTests {
     // Status at index 2: 10 (binary) = 2 (decimal)
     // Status at index 3: 11 (binary) = 3 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .two, byteArray: [0xe4])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: 0)
     #expect(result == 0)
@@ -156,7 +156,7 @@ final class ReadStatusTests {
     // Byte 1: 10011011 (0x9B)
     
     let readStatus = ReadStatus(bitsPerStatus: .two, byteArray: [0xe4, 0x9b])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: 0)
     #expect(result == 0)
@@ -191,7 +191,7 @@ final class ReadStatusTests {
     // Status at index 0: 0000 (binary) = 0 (decimal)
     // Status at index 1: 1111 (binary) = 15 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .four, byteArray: [0xf0])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: 0)
     #expect(result == 0)
@@ -206,7 +206,7 @@ final class ReadStatusTests {
     // Byte 0: 11110000 (0xF0)
     // Byte 1: 10100101 (0xA5)
     let readStatus = ReadStatus(bitsPerStatus: .four, byteArray: [0xf0, 0xa5])
-    var result: Byte? = nil
+    var result: Byte?
     
     // First byte (index 0-1)
     result = await readStatus.readStatus(at: 0)
@@ -231,7 +231,7 @@ final class ReadStatusTests {
     // Byte 1: 00000000 (binary) = 0x00 (hex) = 0 (decimal)
     // Byte 2: 10101010 (binary) = 0xAA (hex) = 170 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .eight, byteArray: [0xff, 0x00, 0xaa])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: 0)
     #expect(result == 255)
@@ -246,10 +246,9 @@ final class ReadStatusTests {
   @Test
   func testNegativeIndexOps() async {
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0x00])
-    var result: Byte? = nil
+    var result: Byte?
     
     result = await readStatus.readStatus(at: -1)
     #expect(result == nil)
   }
 }
-

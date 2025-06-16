@@ -15,9 +15,6 @@
  */
 import Foundation
 
-import Foundation
-
-/// The registered status types
 public enum CredentialStatus: Equatable, Sendable {
   case valid
   case invalid
@@ -52,5 +49,3 @@ public enum CredentialStatus: Equatable, Sendable {
     range.contains(value)
   }
 }
-
-

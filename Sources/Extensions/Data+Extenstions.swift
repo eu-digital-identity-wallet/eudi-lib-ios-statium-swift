@@ -45,7 +45,7 @@ public extension Data {
         nil,
         COMPRESSION_ZLIB
       )
-      return Data(bytes: buffer, count:read)
+      return Data(bytes: buffer, count: read)
     })
     buffer.deallocate()
     return result
@@ -69,6 +69,3 @@ public extension Data {
     return [UInt8](data)
   }
 }
-
-
-

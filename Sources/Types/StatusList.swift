@@ -30,7 +30,7 @@ public struct StatusList: Codable, Sendable {
     self.aggregationUri = aggregationUri
   }
   
-  public enum CodingKeys : String, CodingKey {
+  public enum CodingKeys: String, CodingKey {
     case bytesPerStatus = "bits"
     case compressedList = "lst"
     case aggregationUri = "aggregation_uri"

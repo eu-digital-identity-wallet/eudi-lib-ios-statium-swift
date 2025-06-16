@@ -39,4 +39,3 @@ final class TimeInternalUnitTests {
     #expect(TimeIntervalUnit.weeks.toTimeInterval(multiplier: 1) == 604800)
   }
 }
-
