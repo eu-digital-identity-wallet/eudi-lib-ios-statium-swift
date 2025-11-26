@@ -19,7 +19,7 @@ public protocol VerifyStatusListTokenSignature: Sendable {
   /// Verifies the signature of a status list at a specific [point in time][at].
   /// It raises an exception in case of invalid signature
   func verify(
-    statusListToken: String,
+    statusListToken: Data,
     format: StatusListTokenFormat,
     at: Date
   ) throws
@@ -33,7 +33,7 @@ internal enum VerifyStatusListTokenSignatureFactory {
 
 internal struct VerifyStatusListTokenSignatureImpl: VerifyStatusListTokenSignature {
   func verify(
-    statusListToken: String,
+    statusListToken: Data,
     format: StatusListTokenFormat,
     at: Date
   ) throws {
