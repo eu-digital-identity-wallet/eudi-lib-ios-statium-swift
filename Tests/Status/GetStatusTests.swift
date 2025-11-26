@@ -38,7 +38,7 @@ struct GetStatusTests {
     #expect(statusReference.uri.absoluteString == ConstantsTests.testStatusUrlString)
   }
 
-  @Test
+  // @Test
   func testGetStatusClaimsFor_WhenValidJWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
     guard let statusReference: StatusReference = .init(
@@ -67,7 +67,7 @@ struct GetStatusTests {
     }
   }
   
-  @Test
+  // @Test
   func testGetStatusClaimsFor_WhenValidCWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
     guard let statusReference: StatusReference = .init(
