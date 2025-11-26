@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 import Foundation
+import SwiftCBOR
 
 public protocol StatusListTokenFetcherType {
   
@@ -81,30 +82,45 @@ private extension StatusListTokenFetcher {
     clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError> {
     
-    guard format == .jwt else { return .failure(.cwtNotSupported) }
-    
-    let jwtResult = await fetchJWT(
-      from: url, format: format
+    let fetchResult = await fetch(
+      from: url,
+      format: format
     )
     
-    return switch jwtResult {
-    case .failure(let error):
+    switch format {
+    case .jwt:
+      return switch fetchResult {
+      case .success(let jwtData):
+        processJWT(
+          jwtData,
+          verifier: verifier,
+          sourceURL: url.absoluteString,
+          format: format,
+          clockSkew: clockSkew
+        )
+      case .failure(let error):
         .failure(error)
-    case .success(let jwt):
-      processJWT(
-        jwt,
-        verifier: verifier,
-        sourceURL: url.absoluteString,
-        format: format,
-        clockSkew: clockSkew
-      )
+      }
+    case .cwt:
+      return switch fetchResult {
+      case .success(let cwtData):
+        processCWT(
+          cwtData,
+          verifier: verifier,
+          sourceURL: url.absoluteString,
+          format: format,
+          clockSkew: clockSkew
+        )
+      case .failure(let error):
+        .failure(error)
+      }
     }
   }
   
-  private func fetchJWT(
+  private func fetch(
     from url: URL,
     format: StatusListTokenFormat
-  ) async -> Result<String, StatusError> {
+  ) async -> Result<Data, StatusError> {
     
     let result = await networkingService.get(
       url: url,
@@ -114,23 +130,62 @@ private extension StatusListTokenFetcher {
     )
     
     switch result {
-    case .success(let string):
-      return .success(string)
+    case .success(let data):
+      return .success(data)
     case .failure(let error):
       return .failure(StatusError.error(error.localizedDescription))
     }
   }
   
-  private func processJWT(
-    _ jwt: String,
+  private func processCWT(
+    _ cwtData: Data,
     verifier: VerifyStatusListTokenSignature,
     sourceURL: String,
     format: StatusListTokenFormat,
     clockSkew: TimeInterval
   ) -> Result<StatusListTokenClaims, StatusError> {
     do {
-      let claims = try getAndEnsureClaims(jwt, sourceURL, date, clockSkew)
-      try verifier.verify(statusListToken: jwt, format: format, at: date)
+      let claims = try CWTDecoder().decodeStatusListToken(
+        from: cwtData
+      )
+      
+      try verifier.verify(
+        statusListToken: cwtData,
+        format: format,
+        at: date
+      )
+      
+      return .success(claims)
+      
+    } catch {
+      return .failure(.error(error.localizedDescription))
+    }
+  }
+  
+  private func processJWT(
+    _ jwtData: Data,
+    verifier: VerifyStatusListTokenSignature,
+    sourceURL: String,
+    format: StatusListTokenFormat,
+    clockSkew: TimeInterval
+  ) -> Result<StatusListTokenClaims, StatusError> {
+    do {
+      guard let jwt = String(data: jwtData, encoding: .utf8) else {
+        return .failure(StatusError.invalidJWT)
+      }
+      
+      let claims = try getAndEnsureClaims(
+        jwt,
+        sourceURL,
+        date,
+        clockSkew
+      )
+      
+      try verifier.verify(
+        statusListToken: jwtData,
+        format: format,
+        at: date
+      )
       
       return .success(claims)
     } catch {
