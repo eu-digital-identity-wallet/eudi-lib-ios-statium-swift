@@ -12,13 +12,17 @@ let package = Package(
       targets: ["StatiumSwift"]
     )
   ],
+  dependencies: [
+    .package(url: "https://github.com/myfreeweb/SwiftCBOR.git", from: "0.4.4")
+  ],
   targets: [
     .target(
-      name: "StatiumSwift"
+      name: "StatiumSwift",
+      dependencies: ["SwiftCBOR"]
     ),
     .testTarget(
       name: "StatiumSwiftTests",
-      dependencies: ["StatiumSwift"]
+      dependencies: ["StatiumSwift", "SwiftCBOR"]
     )
   ]
 )
