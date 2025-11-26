@@ -20,7 +20,11 @@ import Compression
 @testable import StatiumSwift
 
 @Suite
-final class GetStatusTests {
+struct GetStatusTests {
+  
+  init() {
+    URLCache.shared.removeAllCachedResponses()
+  }
   
   // Uncomment to run locally
   @Test
@@ -34,8 +38,8 @@ final class GetStatusTests {
     #expect(statusReference.uri.absoluteString == ConstantsTests.testStatusUrlString)
   }
 
-  // @Test
-  func testGetStatusClaims_WhenValidStatusReferenceProvided_ThenReturnsSuccess() async throws {
+  @Test
+  func testGetStatusClaimsFor_WhenValidJWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
     guard let statusReference: StatusReference = .init(
       idx: 1,
@@ -51,6 +55,36 @@ final class GetStatusTests {
     )
     
     let result = await tokenFetcher.getStatusClaims(
+      url: statusReference.uri,
+      clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
+    )
+    
+    switch result {
+    case .success:
+      #expect(true)
+    case .failure:
+      Issue.record("Invalid status")
+    }
+  }
+  
+  @Test
+  func testGetStatusClaimsFor_WhenValidCWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
+    
+    guard let statusReference: StatusReference = .init(
+      idx: 1,
+      uriString: ConstantsTests.testStatusUrlString
+    ) else {
+      Issue.record("Cannot decode status reference")
+      return
+    }
+    
+    let tokenFetcher = StatusListTokenFetcher(
+      verifier: VerifyStatusListTokenSignatureFactory.make(),
+      date: Date()
+    )
+    
+    let result = await tokenFetcher.getStatusClaims(
+      format: .cwt,
       url: statusReference.uri,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
