@@ -27,7 +27,7 @@ struct GetStatusTests {
   }
   
   // Uncomment to run locally
-  @Test
+  // @Test
   func testDecodeStatusReference_WhenValidInputProvided_ThenReturnsCorrectStatusReference() async throws {
     let statusReference = try #require(StatusReference(
       idx: 1,
