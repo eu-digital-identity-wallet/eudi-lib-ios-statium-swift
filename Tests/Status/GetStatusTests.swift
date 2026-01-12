@@ -26,7 +26,7 @@ struct GetStatusTests {
     URLCache.shared.removeAllCachedResponses()
   }
   
-  // Uncomment to run locally
+  // Uncomment to run locally, procure a valid status url first
   // @Test
   func testDecodeStatusReference_WhenValidInputProvided_ThenReturnsCorrectStatusReference() async throws {
     let statusReference = try #require(StatusReference(
@@ -38,6 +38,7 @@ struct GetStatusTests {
     #expect(statusReference.uri.absoluteString == ConstantsTests.testStatusUrlString)
   }
 
+  // Uncomment to run locally, procure a valid status url first
   // @Test
   func testGetStatusClaimsFor_WhenValidJWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
@@ -67,6 +68,7 @@ struct GetStatusTests {
     }
   }
   
+  // Uncomment to run locally, procure a valid status url first
   // @Test
   func testGetStatusClaimsFor_WhenValidCWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
