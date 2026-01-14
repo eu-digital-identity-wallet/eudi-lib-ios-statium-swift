@@ -1,13 +1,13 @@
 {
-  "originHash" : "4e71078bccc90bf8f914a1397492aa1e78be417e4265223d5f477c09a62c15af",
+  "originHash" : "84bb2f8acdc956178ce85a6170080a3d3bd92ef542693cfe26e2ef8afec60a75",
   "pins" : [
     {
       "identity" : "swiftcbor",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/myfreeweb/SwiftCBOR.git",
       "state" : {
-        "revision" : "04ccff117f6549121d5721ec84fdf0162122b90e",
-        "version" : "0.5.0"
+        "revision" : "fd929a6d8f7651ce0f63fc99397fd5762358cc29",
+        "version" : "0.6.0"
       }
     }
   ],
