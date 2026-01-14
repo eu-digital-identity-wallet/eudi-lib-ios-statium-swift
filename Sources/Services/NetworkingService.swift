@@ -24,7 +24,7 @@ public protocol NetworkingServiceType: Sendable {
   func get(
     url: URL,
     headers: [String: String]
-  ) async -> Result<String, NetworkingError>
+  ) async -> Result<Data, NetworkingError>
 }
 
 public actor NetworkingService: NetworkingServiceType {
@@ -38,7 +38,7 @@ public actor NetworkingService: NetworkingServiceType {
   public func get(
     url: URL,
     headers: [String: String]
-  ) async -> Result<String, NetworkingError> {
+  ) async -> Result<Data, NetworkingError> {
     
     var request = URLRequest(url: url)
     request.httpMethod = "GET"
@@ -58,13 +58,7 @@ public actor NetworkingService: NetworkingServiceType {
         )
       }
       
-      guard let string = String(data: data, encoding: .utf8) else {
-        return .failure(
-          .error("Failed to decode JWT from response")
-        )
-      }
-      
-      return .success(string)
+      return .success(data)
       
     } catch {
       return .failure(

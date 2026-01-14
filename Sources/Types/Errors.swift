@@ -22,7 +22,7 @@ public enum StatusError: LocalizedError, Equatable {
   case cannotDecodeRawData
   case badSubject(String)
   case badJwtHeader
-  case cwtNotSupported
+  case invalidCwt
   case networkError(String)
   case decodingError(String)
   case badBytes
