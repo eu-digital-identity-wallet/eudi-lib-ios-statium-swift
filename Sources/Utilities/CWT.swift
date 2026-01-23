@@ -15,6 +15,7 @@
  */
 import Foundation
 import SwiftCBOR
+import Collections
 
 public enum CWTDecodingError: Error {
   case notCoseSign1
@@ -98,7 +99,8 @@ public struct CWTDecoder {
       throw CWTDecodingError.missingStatusList
     }
     
-    let statusList = try Self.decodeStatusList(from: slMap)
+    let dict: [CBOR: CBOR] = Dictionary(uniqueKeysWithValues: slMap.map { ($0.key, $0.value) })
+    let statusList = try Self.decodeStatusList(from: dict)
     
     return .init(
       subject: sub,
