@@ -13,16 +13,17 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/myfreeweb/SwiftCBOR.git", from: "0.5.0")
+    .package(url: "https://github.com/niscy-eudiw/SwiftCBOR.git", from: "0.6.3"),
+    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.3.0")),
   ],
   targets: [
     .target(
       name: "StatiumSwift",
-      dependencies: ["SwiftCBOR"]
+      dependencies: ["SwiftCBOR", .product(name: "Collections", package: "swift-collections")]
     ),
     .testTarget(
       name: "StatiumSwiftTests",
-      dependencies: ["StatiumSwift", "SwiftCBOR"]
+      dependencies: ["StatiumSwift", "SwiftCBOR", .product(name: "Collections", package: "swift-collections")]
     )
   ]
 )
