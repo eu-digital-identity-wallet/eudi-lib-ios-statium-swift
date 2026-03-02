@@ -55,13 +55,12 @@ public extension Data {
     // Some SDKs expose compression_stream fields as non-optional pointers, so we can't init with nil.
     // Provide dummy pointers (they'll be overwritten before use).
     let dummyDst = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
-    let dummySrcMut = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
-    let dummySrc = UnsafePointer<UInt8>(dummySrcMut)
+    defer { dummyDst.deallocate() } // always release
 
-    defer {
-      dummyDst.deallocate()
-      dummySrcMut.deallocate()
-    }
+    let dummySrcMut = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
+    defer { dummySrcMut.deallocate() } // always release
+
+    let dummySrc = UnsafePointer<UInt8>(dummySrcMut)
 
     var stream = compression_stream(
       dst_ptr: dummyDst,
