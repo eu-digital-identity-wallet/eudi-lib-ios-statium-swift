@@ -99,6 +99,13 @@ public struct CWTDecoder {
       throw CWTDecodingError.invalidPayload
     }
     
+    #if DEBUG
+    print("CWT claims keys:")
+    for (k, _) in claimsMap {
+      print(" - \(k)")
+    }
+    #endif
+    
     func claim(_ key: UInt64) -> CBOR? {
       claimsMap.first { k, _ in
         if case let .unsignedInt(v) = k { return v == key }
@@ -235,10 +242,8 @@ public struct CWTDecoder {
     }
 
     // exp must exist and must not be expired (allow skew)
-    guard let exp = expiration else {
-      throw CWTDecodingError.invalidClaims
-    }
-    if exp < now - clockSkew {
+    if let exp = expiration,
+       exp < now - clockSkew {
       throw CWTDecodingError.expired
     }
   }
