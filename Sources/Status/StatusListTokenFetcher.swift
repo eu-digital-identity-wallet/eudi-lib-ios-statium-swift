@@ -145,14 +145,15 @@ private extension StatusListTokenFetcher {
     clockSkew: TimeInterval
   ) -> Result<StatusListTokenClaims, StatusError> {
     do {
-      let claims = try CWTDecoder().decodeStatusListToken(
-        from: cwtData
-      )
       
       try verifier.verify(
         statusListToken: cwtData,
         format: format,
         at: date
+      )
+      
+      let claims = try CWTDecoder().decodeStatusListToken(
+        from: cwtData
       )
       
       return .success(claims)
@@ -174,17 +175,17 @@ private extension StatusListTokenFetcher {
         return .failure(StatusError.invalidJWT)
       }
       
+      try verifier.verify(
+        statusListToken: jwtData,
+        format: format,
+        at: date
+      )
+      
       let claims = try getAndEnsureClaims(
         jwt,
         sourceURL,
         date,
         clockSkew
-      )
-      
-      try verifier.verify(
-        statusListToken: jwtData,
-        format: format,
-        at: date
       )
       
       return .success(claims)

@@ -15,12 +15,19 @@
  */
 import Foundation
 
-public protocol VerifyStatusListTokenSignature: Sendable {
-  /// Verifies the signature of a status list at a specific [point in time][at].
-  /// It raises an exception in case of invalid signature
+@testable import StatiumSwift
+
+internal enum VerifyStatusListTokenSignatureFactory {
+   public static func make() -> VerifyStatusListTokenSignature {
+     VerifyStatusListTokenSignatureImpl()
+   }
+}
+
+internal struct VerifyStatusListTokenSignatureImpl: VerifyStatusListTokenSignature {
   func verify(
     statusListToken: Data,
     format: StatusListTokenFormat,
     at: Date
-  ) throws
+  ) throws {
+  }
 }
