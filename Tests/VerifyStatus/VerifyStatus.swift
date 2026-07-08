@@ -28,6 +28,6 @@ internal struct VerifyStatusListTokenSignatureImpl: VerifyStatusListTokenSignatu
     statusListToken: Data,
     format: StatusListTokenFormat,
     at: Date
-  ) throws {
+  ) async throws {
   }
 }

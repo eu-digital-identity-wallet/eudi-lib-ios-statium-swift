@@ -91,7 +91,7 @@ private extension StatusListTokenFetcher {
     case .jwt:
       return switch fetchResult {
       case .success(let jwtData):
-        processJWT(
+        await processJWT(
           jwtData,
           verifier: verifier,
           sourceURL: url.absoluteString,
@@ -104,7 +104,7 @@ private extension StatusListTokenFetcher {
     case .cwt:
       return switch fetchResult {
       case .success(let cwtData):
-        processCWT(
+        await processCWT(
           cwtData,
           verifier: verifier,
           sourceURL: url.absoluteString,
@@ -143,10 +143,10 @@ private extension StatusListTokenFetcher {
     sourceURL: String,
     format: StatusListTokenFormat,
     clockSkew: TimeInterval
-  ) -> Result<StatusListTokenClaims, StatusError> {
+  ) async -> Result<StatusListTokenClaims, StatusError> {
     do {
       
-      try verifier.verify(
+      try await verifier.verify(
         statusListToken: cwtData,
         format: format,
         at: date
@@ -169,13 +169,13 @@ private extension StatusListTokenFetcher {
     sourceURL: String,
     format: StatusListTokenFormat,
     clockSkew: TimeInterval
-  ) -> Result<StatusListTokenClaims, StatusError> {
+  ) async -> Result<StatusListTokenClaims, StatusError> {
     do {
       guard let jwt = String(data: jwtData, encoding: .utf8) else {
         return .failure(StatusError.invalidJWT)
       }
       
-      try verifier.verify(
+      try await verifier.verify(
         statusListToken: jwtData,
         format: format,
         at: date
