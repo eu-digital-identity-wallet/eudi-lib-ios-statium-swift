@@ -22,5 +22,5 @@ public protocol VerifyStatusListTokenSignature: Sendable {
     statusListToken: Data,
     format: StatusListTokenFormat,
     at: Date
-  ) throws
+  ) async throws
 }
