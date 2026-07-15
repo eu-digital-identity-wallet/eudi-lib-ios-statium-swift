@@ -15,8 +15,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/niscy-eudiw/SwiftCBOR.git",
       "state" : {
-        "revision" : "a663e7a6bd50d2224223ed60622b531b18499dd0",
-        "version" : "0.6.4"
+        "revision" : "e8fef8613a4c32b150885fec8f32c2ebfe0501c4",
+        "version" : "0.6.5"
       }
     }
   ],
