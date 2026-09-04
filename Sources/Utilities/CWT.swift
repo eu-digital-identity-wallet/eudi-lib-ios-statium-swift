@@ -33,6 +33,8 @@ public enum CWTDecodingError: Error {
   case subjectMismatch
   case issuedAtInFuture
   case expired
+  case ttlExceeded
+  case noFreshnessConstraint
 }
 
 public struct CWTDecoder {
@@ -171,6 +173,7 @@ public struct CWTDecoder {
       subject: sub,
       issuedAt: iat,
       expiration: exp,
+      timeToLive: ttl,
       fetchedFrom: fetchedFrom,
       clockSkew: clockSkew
     )
@@ -274,6 +277,7 @@ public struct CWTDecoder {
     subject: String,
     issuedAt: TimeInterval,
     expiration: TimeInterval?,
+    timeToLive: TimeInterval?,
     fetchedFrom: URL?,
     clockSkew: TimeInterval
   ) throws {
@@ -293,10 +297,26 @@ public struct CWTDecoder {
       throw CWTDecodingError.issuedAtInFuture
     }
 
-    // exp must exist and must not be expired (allow skew)
+    // exp must not be expired (allow skew)
     if let exp = expiration,
        exp < now - clockSkew {
       throw CWTDecodingError.expired
+    }
+
+    // Enforce TTL: token age must not exceed ttl value
+    // TTL defines how many seconds after iat the client should trust the token,
+    // taking precedence over HTTP cache headers.
+    if let ttl = timeToLive {
+      let tokenAge = now - issuedAt
+      guard tokenAge <= ttl + clockSkew else {
+        throw CWTDecodingError.ttlExceeded
+      }
+    }
+
+    // Require at least exp OR ttl to be present for freshness guarantee
+    // A token without either constraint could be replayed indefinitely.
+    if expiration == nil && timeToLive == nil {
+      throw CWTDecodingError.noFreshnessConstraint
     }
   }
 
