@@ -25,6 +25,8 @@ public enum CWTDecodingError: Error {
   case missingStatusList
   case invalidBitsValue
   case invalidListBytes
+  case inputTooLarge
+  case trailingBytes
 
   // Added for required validation
   case invalidType
@@ -34,6 +36,13 @@ public enum CWTDecodingError: Error {
 }
 
 public struct CWTDecoder {
+
+  /// Maximum allowed input size for CBOR decoding (1 MB).
+  private static let maxInputSize = 1024 * 1024  // 1 MB
+
+  /// Maximum nesting depth for CBOR structures.
+  /// This prevents stack overflow attacks using deeply nested structures in the unprotected header.
+  private static let maxCBORDepth = 64
 
   public init() {}
 
@@ -55,9 +64,13 @@ public struct CWTDecoder {
     clockSkew: TimeInterval = 300
   ) throws -> StatusListTokenClaims {
 
-    let root = try Self.decodeCBOR(from: data)
-    
+    // Enable trailing bytes checking for the root COSE structure.
+    // Trailing bytes are not covered by the signature and could be used for covert channels.
+    let root = try Self.decodeCBOR(from: data, checkTrailingBytes: true)
+
     // Expect COSE_Sign1: tag(18, array[4])
+    // NOTE: We require the COSE_Sign1 tag (18) and reject untagged arrays.
+    // Untagged 4-element arrays are ambiguous with COSE_Sign (multi-signature) format.
     let coseArray: [CBOR]
     switch root {
     case .tagged(let tag, let value) where tag.rawValue == 18:
@@ -65,10 +78,7 @@ public struct CWTDecoder {
         throw CWTDecodingError.invalidCoseStructure
       }
       coseArray = arr
-      
-    case .array(let arr) where arr.count == 4:
-      coseArray = arr
-      
+
     default:
       throw CWTDecodingError.notCoseSign1
     }
@@ -78,14 +88,18 @@ public struct CWTDecoder {
       throw CWTDecodingError.invalidCoseStructure
     }
 
-    guard case let .map(unprotectedHeaderMap) = coseArray[1] else {
+    guard case .map = coseArray[1] else {
       throw CWTDecodingError.invalidCoseStructure
     }
 
-    // Validate typ == "application/statuslist+cwt" (protected preferred)
+    // Validate signature element is a byte string (COSE_Sign1 requirement)
+    guard case .byteString = coseArray[3] else {
+      throw CWTDecodingError.invalidCoseStructure
+    }
+
+    // Validate typ == "application/statuslist+cwt" (protected header only)
     try Self.validateType(
-      protectedHeaderBytes: Data(protectedHeaderBytes),
-      unprotectedHeaderMap: unprotectedHeaderMap
+      protectedHeaderBytes: Data(protectedHeaderBytes)
     )
 
     // Extract payload (3rd element)
@@ -124,11 +138,25 @@ public struct CWTDecoder {
     }
     let iat = TimeInterval(iatRaw)
     
-    // Claim 4 = exp (optional)
+    // Claim 4 = exp (optional, but must be valid numeric if present)
+    // Handle all valid CBOR numeric types to avoid silently dropping float-encoded exp values.
     var exp: TimeInterval?
-    if let expCbor = claim(4),
-       case let .unsignedInt(expRaw) = expCbor {
-      exp = TimeInterval(expRaw)
+    if let expCbor = claim(4) {
+      switch expCbor {
+      case .unsignedInt(let v):
+        exp = TimeInterval(v)
+      case .negativeInt(let v):
+        exp = TimeInterval(v)
+      case .float(let v):
+        exp = TimeInterval(v)
+      case .double(let v):
+        exp = v
+      case .half(let v):
+        exp = TimeInterval(v)
+      default:
+        // exp claim is present but has invalid type - fail closed
+        throw CWTDecodingError.invalidClaims
+      }
     }
     
     // Claim 65534 = ttl (optional)
@@ -165,8 +193,32 @@ public struct CWTDecoder {
     )
   }
   
-  private static func decodeCBOR(from data: Data) throws -> CBOR? {
-    try? CBORDecoder(input: [UInt8](data)).decodeItem()
+  private static func decodeCBOR(from data: Data, checkTrailingBytes: Bool = false) throws -> CBOR? {
+    // Defense against excessively large input
+    guard data.count <= maxInputSize else {
+      throw CWTDecodingError.inputTooLarge
+    }
+
+    let bytes = [UInt8](data)
+
+    // Use CBOROptions with maximumDepth to prevent stack overflow from deeply nested structures.
+    // The unprotected header is not covered by the signature, so an attacker could inject
+    // deeply nested CBOR to trigger a stack overflow crash.
+    let options = CBOROptions(maximumDepth: maxCBORDepth)
+    let stream = TrackingCBORInputStream(bytes: bytes)
+    let decoder = CBORDecoder(stream: stream, options: options)
+
+    let item = try decoder.decodeItem()
+
+    // Check for trailing bytes after decoding (security: prevents covert channel / integrity bypass).
+    // Trailing bytes are not covered by the COSE signature and could be used for:
+    // - Covert channel inside response
+    // - Defeating byte-level integrity controls (response hashing, ETags, etc.)
+    if checkTrailingBytes && stream.hasRemainingBytes {
+      throw CWTDecodingError.trailingBytes
+    }
+
+    return item
   }
   
   /// Decode CBOR into StatusList into
@@ -226,10 +278,10 @@ public struct CWTDecoder {
     clockSkew: TimeInterval
   ) throws {
 
-    // Compare fetched URI origin (scheme://host[:port]) with subject, if URL is provided.
+    // Compare fetched URI with subject claim to prevent token substitution attacks.
+    // The subject claim MUST match the URL used to fetch the token (consistent with JWT path).
     if let fetchedFrom {
-      let fetchedOrigin = originString(fetchedFrom)
-      guard fetchedOrigin == subject else {
+      guard fetchedFrom.absoluteString == subject else {
         throw CWTDecodingError.subjectMismatch
       }
     }
@@ -249,26 +301,19 @@ public struct CWTDecoder {
   }
 
   private static func validateType(
-    protectedHeaderBytes: Data,
-    unprotectedHeaderMap: OrderedDictionary<CBOR, CBOR>
+    protectedHeaderBytes: Data
   ) throws {
     let expected = "application/statuslist+cwt"
 
     // Protected header is a bstr containing a CBOR map
-    if let protected = try? CBORDecoder(input: [UInt8](protectedHeaderBytes)).decodeItem(),
-       case let .map(m) = protected,
-       let typ = coseTyp(from: m),
-       typ == expected {
-      return
+    // NOTE: typ MUST be in the protected header for integrity protection.
+    // Unprotected headers are not signed and can be modified by attackers.
+    guard let protected = try? CBORDecoder(input: [UInt8](protectedHeaderBytes)).decodeItem(),
+          case let .map(m) = protected,
+          let typ = coseTyp(from: m),
+          typ == expected else {
+      throw CWTDecodingError.invalidType
     }
-
-    // Fallback to unprotected header map
-    if let typ = coseTyp(from: unprotectedHeaderMap),
-       typ == expected {
-      return
-    }
-
-    throw CWTDecodingError.invalidType
   }
 
   // COSE header parameter "typ" has label 16
@@ -288,14 +333,38 @@ public struct CWTDecoder {
     return nil
   }
 
-  private static func originString(_ url: URL) -> String {
-    var comps = URLComponents(url: url, resolvingAgainstBaseURL: false)
-    comps?.path = ""
-    comps?.query = nil
-    comps?.fragment = nil
-    var s = comps?.string ?? url.absoluteString
-    if s.hasSuffix("/") { s.removeLast() }
-    return s
+}
+
+// MARK: - TrackingCBORInputStream
+
+/// A CBORInputStream wrapper that tracks remaining bytes for trailing bytes detection.
+/// This is used to detect when a CBOR structure is followed by extra bytes that are
+/// not part of the signed content (potential covert channel or integrity bypass).
+private class TrackingCBORInputStream: CBORInputStream {
+  private var bytes: ArraySlice<UInt8>
+
+  init(bytes: [UInt8]) {
+    self.bytes = ArraySlice(bytes)
+  }
+
+  var hasRemainingBytes: Bool {
+    return !bytes.isEmpty
+  }
+
+  func popByte() throws -> UInt8 {
+    guard !bytes.isEmpty else {
+      throw CBORError.unfinishedSequence
+    }
+    return bytes.removeFirst()
+  }
+
+  func popBytes(_ n: Int) throws -> ArraySlice<UInt8> {
+    guard bytes.count >= n else {
+      throw CBORError.unfinishedSequence
+    }
+    let result = bytes.prefix(n)
+    bytes = bytes.dropFirst(n)
+    return result
   }
 }
 

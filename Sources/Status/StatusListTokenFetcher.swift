@@ -153,7 +153,9 @@ private extension StatusListTokenFetcher {
       )
       
       let claims = try CWTDecoder().decodeStatusListToken(
-        from: cwtData
+        from: cwtData,
+        fetchedFrom: URL(string: sourceURL),
+        clockSkew: clockSkew
       )
       
       return .success(claims)
