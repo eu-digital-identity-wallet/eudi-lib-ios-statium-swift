@@ -25,17 +25,28 @@ internal struct JWT {
     guard segments.count == 3 else {
       throw StatusError.invalidJWT
     }
-    
+
     let headerData = try Data.base64URLDecode(segments[0])
     let payloadData = try Data.base64URLDecode(segments[1])
     let signatureData = try Data.base64URLDecode(segments[2])
-    
+
     let headerJSON = try? JSONSerialization.jsonObject(with: headerData, options: [])
     guard let headerDict = headerJSON as? [String: Any] else {
       throw StatusError.invalidJWT
     }
+
+    // Reject alg: none - unsigned tokens are not allowed
+    if let alg = headerDict["alg"] as? String,
+       alg.lowercased() == "none" {
+      throw StatusError.algorithmNoneNotAllowed
+    }
+
+    // Reject empty signature - all tokens must be signed
+    guard !signatureData.isEmpty else {
+      throw StatusError.missingSignature
+    }
+
     self.header = headerDict
-    
     self.payload = payloadData
     self.signature = signatureData
   }
