@@ -132,45 +132,24 @@ extension URL {
   }
 
   /// Checks if the host is a private IP address.
-  /// Blocks: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8
+  /// Blocks: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16
   private func isPrivateIPAddress(_ host: String) -> Bool {
-    // Split into octets for IPv4 check
-    let parts = host.split(separator: ".").compactMap { Int($0) }
+    let octets = host.split(separator: ".").compactMap { UInt8($0) }
 
-    guard parts.count == 4,
-          parts.allSatisfy({ $0 >= 0 && $0 <= 255 }) else {
+    guard octets.count == 4 else {
       // Not a valid IPv4 address, allow (could be hostname)
       return false
     }
 
-    let first = parts[0]
-    let second = parts[1]
-
-    // 10.0.0.0/8 - Class A private
-    if first == 10 {
+    switch (octets[0], octets[1]) {
+    case (10, _),           // 10.0.0.0/8 - Class A private
+         (172, 16...31),    // 172.16.0.0/12 - Class B private
+         (192, 168),        // 192.168.0.0/16 - Class C private
+         (127, _),          // 127.0.0.0/8 - Loopback
+         (169, 254):        // 169.254.0.0/16 - Link-local
       return true
+    default:
+      return false
     }
-
-    // 172.16.0.0/12 - Class B private (172.16.x.x - 172.31.x.x)
-    if first == 172 && (second >= 16 && second <= 31) {
-      return true
-    }
-
-    // 192.168.0.0/16 - Class C private
-    if first == 192 && second == 168 {
-      return true
-    }
-
-    // 127.0.0.0/8 - Loopback
-    if first == 127 {
-      return true
-    }
-
-    // 169.254.0.0/16 - Link-local
-    if first == 169 && second == 254 {
-      return true
-    }
-
-    return false
   }
 }
