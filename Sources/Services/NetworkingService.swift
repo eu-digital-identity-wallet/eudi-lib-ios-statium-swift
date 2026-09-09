@@ -20,6 +20,10 @@ public enum NetworkingError: LocalizedError, Equatable {
   case invalidURLScheme
   case privateIPAddress
   case localhostNotAllowed
+  case missingHost
+  case nonPublicAddress(reason: String)
+  case dnsResolutionFailed(hostname: String)
+  case redirectBlocked
 
   public var errorDescription: String? {
     switch self {
@@ -31,6 +35,14 @@ public enum NetworkingError: LocalizedError, Equatable {
       return "Private IP addresses are not allowed"
     case .localhostNotAllowed:
       return "Localhost is not allowed"
+    case .missingHost:
+      return "URL is missing a host"
+    case .nonPublicAddress(let reason):
+      return "Non-public address: \(reason)"
+    case .dnsResolutionFailed(let hostname):
+      return "DNS resolution failed for \(hostname)"
+    case .redirectBlocked:
+      return "Redirect to non-public address was blocked"
     }
   }
 }
@@ -46,29 +58,60 @@ public protocol NetworkingServiceType: Sendable {
 public actor NetworkingService: NetworkingServiceType {
 
   public let session: URLSession
+  private let ssrfValidator: SSRFValidator
+  private let redirectDelegate: SSRFRedirectDelegate
 
   /// Default ephemeral session configuration.
   /// Ephemeral sessions don't persist cookies, caches, or credentials to disk,
   /// preventing cross-request tracking and improving privacy.
-  private static let ephemeralSession: URLSession = {
+  private static func makeEphemeralConfiguration() -> URLSessionConfiguration {
     let config = URLSessionConfiguration.ephemeral
     config.httpCookieAcceptPolicy = .never
     config.httpShouldSetCookies = false
-    return URLSession(configuration: config)
-  }()
-
-  public init(session: URLSession? = nil) {
-    self.session = session ?? Self.ephemeralSession
+    return config
   }
-  
+
+  /// Creates a NetworkingService with the default configuration.
+  public init() {
+    let validator = SSRFValidator()
+    self.ssrfValidator = validator
+    self.redirectDelegate = validator.makeRedirectValidatingDelegate()
+
+    let config = Self.makeEphemeralConfiguration()
+    self.session = URLSession(configuration: config, delegate: redirectDelegate, delegateQueue: nil)
+  }
+
+  /// Creates a NetworkingService with a custom DNS resolver (for testing).
+  /// - Parameter dnsResolver: DNS resolver to use for hostname resolution.
+  package init(dnsResolver: any DNSResolverType) {
+    let validator = SSRFValidator(dnsResolver: dnsResolver)
+    self.ssrfValidator = validator
+    self.redirectDelegate = validator.makeRedirectValidatingDelegate()
+
+    let config = Self.makeEphemeralConfiguration()
+    self.session = URLSession(configuration: config, delegate: redirectDelegate, delegateQueue: nil)
+  }
+
+  /// Creates a NetworkingService with custom session and DNS resolver (for testing).
+  /// - Parameters:
+  ///   - session: Custom URLSession to use.
+  ///   - dnsResolver: DNS resolver to use for hostname resolution.
+  package init(session: URLSession, dnsResolver: any DNSResolverType) {
+    let validator = SSRFValidator(dnsResolver: dnsResolver)
+    self.ssrfValidator = validator
+    self.redirectDelegate = validator.makeRedirectValidatingDelegate()
+    self.session = session
+  }
+
   public func get(
     url: URL,
     headers: [String: String]
   ) async -> Result<Data, NetworkingError> {
 
     // Validate URL security before fetching (SSRF prevention)
+    // This performs DNS resolution and validates all resolved addresses.
     do {
-      try url.validateForStatusFetch()
+      try await ssrfValidator.validate(url: url)
     } catch let error as NetworkingError {
       return .failure(error)
     } catch {
@@ -80,7 +123,7 @@ public actor NetworkingService: NetworkingServiceType {
     for (key, value) in headers {
       request.setValue(value, forHTTPHeaderField: key)
     }
-    
+
     do {
       let (data, response) = try await session.data(for: request)
       guard
@@ -92,64 +135,18 @@ public actor NetworkingService: NetworkingServiceType {
           )
         )
       }
-      
+
       return .success(data)
-      
+
+    } catch let urlError as URLError where urlError.code == .cancelled {
+      // Redirect was blocked by our delegate
+      return .failure(.redirectBlocked)
     } catch {
       return .failure(
         .error(
           error.localizedDescription
         )
       )
-    }
-  }
-}
-
-// MARK: - URL Security Validation
-
-extension URL {
-  /// Validates the URL for secure status list fetching.
-  /// Requires HTTPS and blocks private/localhost addresses to prevent SSRF attacks.
-  func validateForStatusFetch() throws {
-    // Require HTTPS scheme
-    guard scheme?.lowercased() == "https" else {
-      throw NetworkingError.invalidURLScheme
-    }
-
-    guard let host = self.host?.lowercased() else {
-      throw NetworkingError.error("Missing host in URL")
-    }
-
-    // Block localhost variants
-    if host == "localhost" || host == "127.0.0.1" || host == "::1" {
-      throw NetworkingError.localhostNotAllowed
-    }
-
-    // Block private IP ranges
-    if isPrivateIPAddress(host) {
-      throw NetworkingError.privateIPAddress
-    }
-  }
-
-  /// Checks if the host is a private IP address.
-  /// Blocks: 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 127.0.0.0/8, 169.254.0.0/16
-  private func isPrivateIPAddress(_ host: String) -> Bool {
-    let octets = host.split(separator: ".").compactMap { UInt8($0) }
-
-    guard octets.count == 4 else {
-      // Not a valid IPv4 address, allow (could be hostname)
-      return false
-    }
-
-    switch (octets[0], octets[1]) {
-    case (10, _),           // 10.0.0.0/8 - Class A private
-         (172, 16...31),    // 172.16.0.0/12 - Class B private
-         (192, 168),        // 192.168.0.0/16 - Class C private
-         (127, _),          // 127.0.0.0/8 - Loopback
-         (169, 254):        // 169.254.0.0/16 - Link-local
-      return true
-    default:
-      return false
     }
   }
 }
