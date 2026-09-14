@@ -560,6 +560,36 @@ struct SSRFValidatorTests {
   }
 }
 
+// MARK: - SystemDNSResolver Integration Tests
+
+@Suite
+struct SystemDNSResolverTests {
+
+  @Test
+  func testResolve_WhenExampleDotCom_ThenReturnsPublicIPAddresses() async throws {
+    let resolver = SystemDNSResolver()
+    let addresses = try await resolver.resolve(hostname: "example.com")
+
+    // example.com should resolve to at least one address
+    #expect(!addresses.isEmpty, "example.com should resolve to at least one IP address")
+
+    // All resolved addresses should be public (not private/localhost)
+    for address in addresses {
+      let result = IPAddressValidator.validate(address)
+      #expect(result == .allowed, "example.com resolved to non-public address: \(address)")
+    }
+  }
+
+  @Test
+  func testResolve_WhenInvalidHostname_ThenThrowsError() async {
+    let resolver = SystemDNSResolver()
+
+    await #expect(throws: DNSResolutionError.self) {
+      _ = try await resolver.resolve(hostname: "this-hostname-does-not-exist-12345.invalid")
+    }
+  }
+}
+
 // MARK: - NetworkingService Integration Tests
 
 @Suite
