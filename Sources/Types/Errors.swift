@@ -38,6 +38,4 @@ public enum StatusError: LocalizedError, Equatable {
   case algorithmNoneNotAllowed
   /// JWT has empty or missing signature
   case missingSignature
-  /// Token has neither exp nor ttl claim - no freshness constraint
-  case noFreshnessConstraint
 }
