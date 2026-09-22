@@ -39,7 +39,7 @@ struct GetStatusTests {
   }
 
   // Uncomment to run locally, procure a valid status url first
-  @Test
+  // @Test
   func testGetStatusClaimsFor_WhenValidJWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
     
     guard let statusReference: StatusReference = .init(
@@ -68,7 +68,7 @@ struct GetStatusTests {
   }
 
   // Uncomment to run locally, procure a valid status url first
-  @Test
+  // @Test
   func testGetStatusClaimsFor_WhenValidCWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
 
     guard let statusReference: StatusReference = .init(
