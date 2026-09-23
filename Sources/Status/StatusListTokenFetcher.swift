@@ -17,31 +17,31 @@ import Foundation
 import SwiftCBOR
 
 public protocol StatusListTokenFetcherType {
-  
-  /// Initializes an object that conforms to `StatusListTokenFetcherType` with the provided `verifier` and `date`.
+
+  /// Initializes an object that conforms to `StatusListTokenFetcherType` with the provided `verifier` and `dateProvider`.
   ///
   /// - Parameter verifier: An object responsible for verifying the status list token's signature.
-  /// - Parameter networkingService: An object responsible fornetworking.
-  /// - Parameter date: The date used for token validation (e.g., to check expiration or issue time).
+  /// - Parameter networkingService: An object responsible for networking.
+  /// - Parameter dateProvider: A closure that returns the current date for token validation.
+  ///   Using a closure instead of a fixed Date ensures fresh timestamps for each operation,
+  ///   preventing stale clock issues in long-lived fetcher instances.
   ///
   /// This initializer is required to ensure the object is properly set up with the necessary dependencies
   /// for status retrieval and validation.
   init(
     networkingService: NetworkingServiceType,
     verifier: any VerifyStatusListTokenSignature,
-    date: Date
+    dateProvider: @escaping @Sendable () -> Date
   )
   
   /// Retrieves the status list token claims from the given URL.
   ///
   /// - Parameters:
-  ///   - session: The `URLSession` instance used for network requests.
   ///   - format: The format of the status list token, either `.jwt` or `.cwt`.
   ///   - url: An optional `URL` pointing to the status list resource.
   ///   - clockSkew: The time tolerance applied when validating the token.
   /// - Returns: A `Result` containing either the `StatusListTokenClaims` on success or a `StatusError` on failure.
   func getStatusClaims(
-    session: URLSession,
     format: StatusListTokenFormat,
     url: URL,
     clockSkew: TimeInterval
@@ -49,34 +49,34 @@ public protocol StatusListTokenFetcherType {
 }
 
 public actor StatusListTokenFetcher: StatusListTokenFetcherType {
-  
+
   public let networkingService: any NetworkingServiceType
   public let verifier: any VerifyStatusListTokenSignature
-  public let date: Date
-  
+  /// Closure that provides the current date for each validation operation.
+  /// This ensures fresh timestamps and prevents stale clock issues in long-lived instances.
+  public let dateProvider: @Sendable () -> Date
+
   public init(
     networkingService: NetworkingServiceType = NetworkingService(),
     verifier: any VerifyStatusListTokenSignature,
-    date: Date = Date()
+    dateProvider: @escaping @Sendable () -> Date = { Date() }
   ) {
     self.networkingService = networkingService
     self.verifier = verifier
-    self.date = date
+    self.dateProvider = dateProvider
   }
   
   public func getStatusClaims(
-    session: URLSession = .shared,
     format: StatusListTokenFormat = .jwt,
     url: URL,
     clockSkew: TimeInterval
   ) async -> Result<StatusListTokenClaims, StatusError> {
-    await getClaims(session: session, format: format, url: url, clockSkew: clockSkew)
+    await getClaims(format: format, url: url, clockSkew: clockSkew)
   }
 }
 
 private extension StatusListTokenFetcher {
   private func getClaims(
-    session: URLSession,
     format: StatusListTokenFormat,
     url: URL,
     clockSkew: TimeInterval
@@ -146,14 +146,18 @@ private extension StatusListTokenFetcher {
   ) async -> Result<StatusListTokenClaims, StatusError> {
     do {
       
+      // Use fresh date for each verification to prevent stale clock issues
+      let currentDate = dateProvider()
       try await verifier.verify(
         statusListToken: cwtData,
         format: format,
-        at: date
+        at: currentDate
       )
       
       let claims = try CWTDecoder().decodeStatusListToken(
-        from: cwtData
+        from: cwtData,
+        fetchedFrom: URL(string: sourceURL),
+        clockSkew: clockSkew
       )
       
       return .success(claims)
@@ -175,16 +179,18 @@ private extension StatusListTokenFetcher {
         return .failure(StatusError.invalidJWT)
       }
       
+      // Use fresh date for each verification to prevent stale clock issues
+      let currentDate = dateProvider()
       try await verifier.verify(
         statusListToken: jwtData,
         format: format,
-        at: date
+        at: currentDate
       )
-      
+
       let claims = try getAndEnsureClaims(
         jwt,
         sourceURL,
-        date,
+        currentDate,
         clockSkew
       )
       
@@ -224,22 +230,35 @@ extension StatusListTokenClaims {
     date: Date,
     clockSkew: TimeInterval
   ) throws -> StatusListTokenClaims {
+    // Validate subject matches the fetch URL
     if uri != self.subject {
       throw StatusError.badSubject(self.subject)
     }
-    
+
+    // Validate iat is not in the future
+    let iat = issuedAt
+    let iatDate = Date(timeIntervalSince1970: iat)
+    guard iatDate.addingTimeInterval(-clockSkew) <= date else {
+      throw StatusError.invalidIssueDate
+    }
+
+    // Validate exp if present
     if let exp = expirationTime {
       let expirationDate = Date(timeIntervalSince1970: exp)
       guard date <= expirationDate.addingTimeInterval(clockSkew) else {
         throw StatusError.expiredToken
       }
     }
-    
-    let iat = issuedAt
-    let iatDate = Date(timeIntervalSince1970: iat)
-    guard iatDate.addingTimeInterval(-clockSkew) <= date else {
-      throw StatusError.invalidIssueDate
+
+    // Enforce TTL if present: token age must not exceed ttl value
+    // TTL defines maximum age from issuedAt, taking precedence over HTTP cache headers
+    if let ttl = timeToLive {
+      let tokenAge = date.timeIntervalSince1970 - iat
+      guard tokenAge <= ttl + clockSkew else {
+        throw StatusError.ttlExceeded
+      }
     }
+
     return self
   }
 }

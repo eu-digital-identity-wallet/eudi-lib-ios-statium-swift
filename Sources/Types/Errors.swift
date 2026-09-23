@@ -30,4 +30,12 @@ public enum StatusError: LocalizedError, Equatable {
   case expiredToken
   case invalidIssueDate
   case invalidJWT
+  /// Token age exceeds the TTL (time-to-live) value
+  case ttlExceeded
+  /// Token has neither exp nor ttl claim - no freshness constraint
+  case noFreshnessConstraint
+  /// JWT uses alg: none which is not allowed
+  case algorithmNoneNotAllowed
+  /// JWT has empty or missing signature
+  case missingSignature
 }

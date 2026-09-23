@@ -27,7 +27,7 @@ struct GetStatusTests {
   }
   
   // Uncomment to run locally, procure a valid status url first
-  // @Test
+  @Test
   func testDecodeStatusReference_WhenValidInputProvided_ThenReturnsCorrectStatusReference() async throws {
     let statusReference = try #require(StatusReference(
       idx: 1,
@@ -51,27 +51,26 @@ struct GetStatusTests {
     }
     
     let tokenFetcher = StatusListTokenFetcher(
-      verifier: VerifyStatusListTokenSignatureFactory.make(),
-      date: Date()
+      verifier: VerifyStatusListTokenSignatureFactory.make()
     )
-    
+
     let result = await tokenFetcher.getStatusClaims(
       url: statusReference.uri,
       clockSkew: TimeIntervalUnit.weeks.toTimeInterval(multiplier: 3)
     )
-    
+
     switch result {
     case .success:
       #expect(true)
-    case .failure:
-      Issue.record("Invalid status")
+    case .failure(let error):
+      Issue.record("Failed: \(error)")
     }
   }
-  
+
   // Uncomment to run locally, procure a valid status url first
   // @Test
   func testGetStatusClaimsFor_WhenValidCWTStatusReferenceProvided_ThenReturnsSuccess() async throws {
-    
+
     guard let statusReference: StatusReference = .init(
       idx: 1,
       uriString: ConstantsTests.testStatusUrlString
@@ -79,10 +78,9 @@ struct GetStatusTests {
       Issue.record("Cannot decode status reference")
       return
     }
-    
+
     let tokenFetcher = StatusListTokenFetcher(
-      verifier: VerifyStatusListTokenSignatureFactory.make(),
-      date: Date()
+      verifier: VerifyStatusListTokenSignatureFactory.make()
     )
     
     let result = await tokenFetcher.getStatusClaims(

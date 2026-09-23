@@ -15,7 +15,7 @@
  */
 import Foundation
 
-public typealias FetchClaimsHandler = @Sendable (URLSession, StatusListTokenFormat, URL, TimeInterval) async -> Result<StatusListTokenClaims, StatusError>
+public typealias FetchClaimsHandler = @Sendable (StatusListTokenFormat, URL, TimeInterval) async -> Result<StatusListTokenClaims, StatusError>
 
 /// A protocol that defines the necessary requirements for types that retrieve status information.
 ///
@@ -35,11 +35,10 @@ public protocol GetStatusType {
   
   /// Fetches the status information asynchronously for a given index.
   ///
-  /// This method retrieves the status for a specific index, given a URL session, token format, and URL.
+  /// This method retrieves the status for a specific index, given a token format and URL.
   /// It performs an asynchronous operation and returns a result indicating either success (`Status`) or failure (`StatusError`).
   ///
   /// - Parameter index: The index of the status to retrieve.
-  /// - Parameter session: The `URLSession` used to perform the network request.
   /// - Parameter format: The format of the status list token, represented as a `StatusListTokenFormat`.
   /// - Parameter url: A `URL` that represents the source of the status list.
   /// - Parameter clockSkew: The time tolerance applied during status validation.
@@ -48,16 +47,14 @@ public protocol GetStatusType {
   /// - Returns: A `Result` containing either a `CredentialStatus` if the operation succeeds, or a `StatusError` if it fails.
   ///
   func getStatus(
-    session: URLSession,
     index: Int,
     url: URL,
     format: StatusListTokenFormat,
     fetchClaims: @escaping FetchClaimsHandler,
     clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError>
-  
+
   func getStatus(
-    session: URLSession,
     reference: StatusReference,
     format: StatusListTokenFormat,
     fetchClaims: @escaping FetchClaimsHandler,
@@ -76,16 +73,14 @@ public actor GetStatus: GetStatusType {
   }
   
   public func getStatus(
-    session: URLSession = .shared,
     index: Int,
     url: URL,
     format: StatusListTokenFormat = .jwt,
     fetchClaims: @escaping FetchClaimsHandler,
     clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError> {
-    
+
     let result = await fetchClaims(
-      session,
       format,
       url,
       clockSkew
@@ -103,14 +98,12 @@ public actor GetStatus: GetStatusType {
   }
   
   public func getStatus(
-    session: URLSession = .shared,
     reference: StatusReference,
     format: StatusListTokenFormat = .jwt,
     fetchClaims: @escaping FetchClaimsHandler,
     clockSkew: TimeInterval
   ) async -> Result<CredentialStatus, StatusError> {
     await getStatus(
-      session: session,
       index: reference.idx,
       url: reference.uri,
       format: format,
