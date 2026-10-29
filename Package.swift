@@ -14,7 +14,7 @@ let package = Package(
   ],
   dependencies: [
     .package(url: "https://github.com/niscy-eudiw/SwiftCBOR.git", from: "0.6.8"),
-    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.7.3")),
+    .package(url: "https://github.com/apple/swift-collections.git", from: "1.7.5"),
   ],
   targets: [
     .target(
