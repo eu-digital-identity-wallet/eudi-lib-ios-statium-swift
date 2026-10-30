@@ -5,7 +5,7 @@ import PackageDescription
 
 let package = Package(
   name: "StatiumSwift",
-  platforms: [.iOS(.v14), .macOS(.v12)],
+  platforms: [.iOS(.v15), .macOS(.v15)],
   products: [
     .library(
       name: "StatiumSwift",
@@ -13,8 +13,8 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(url: "https://github.com/niscy-eudiw/SwiftCBOR.git", from: "0.6.3"),
-    .package(url: "https://github.com/apple/swift-collections.git", .upToNextMinor(from: "1.7.1")),
+    .package(url: "https://github.com/niscy-eudiw/SwiftCBOR.git", from: "0.6.9"),
+    .package(url: "https://github.com/apple/swift-collections.git", from: "1.7.5"),
   ],
   targets: [
     .target(
