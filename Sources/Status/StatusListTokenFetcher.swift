@@ -250,15 +250,6 @@ extension StatusListTokenClaims {
       }
     }
 
-    // Enforce TTL if present: token age must not exceed ttl value
-    // TTL defines maximum age from issuedAt, taking precedence over HTTP cache headers
-    if let ttl = timeToLive {
-      let tokenAge = date.timeIntervalSince1970 - iat
-      guard tokenAge <= ttl + clockSkew else {
-        throw StatusError.ttlExceeded
-      }
-    }
-
     return self
   }
 }

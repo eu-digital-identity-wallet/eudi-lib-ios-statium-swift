@@ -303,16 +303,6 @@ public struct CWTDecoder {
       throw CWTDecodingError.expired
     }
 
-    // Enforce TTL: token age must not exceed ttl value
-    // TTL defines how many seconds after iat the client should trust the token,
-    // taking precedence over HTTP cache headers.
-    if let ttl = timeToLive {
-      let tokenAge = now - issuedAt
-      guard tokenAge <= ttl + clockSkew else {
-        throw CWTDecodingError.ttlExceeded
-      }
-    }
-
     // Require at least exp OR ttl to be present for freshness guarantee
     // A token without either constraint could be replayed indefinitely.
     if expiration == nil && timeToLive == nil {
