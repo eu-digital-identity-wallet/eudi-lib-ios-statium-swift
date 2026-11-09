@@ -214,10 +214,10 @@ final class CWTSecurityTests {
 
   // MARK: - TTL & Freshness Tests
 
-  /// Verify that CWT with expired TTL is rejected.
+  /// Verify that a fetched CWT is accepted when iat is older than the TTL.
+  /// The TTL counts from the time of the fetch, not from iat.
   @Test
-  func testDecodeCWT_WhenTTLExpired_ThenThrowsTTLExceeded() throws {
-    // Create a CWT where iat is old enough that TTL has expired
+  func testDecodeCWT_WhenIatIsOlderThanTTL_ThenSucceeds() throws {
     let oldIat = Date().timeIntervalSince1970 - 7200  // 2 hours ago
     let ttl: TimeInterval = 3600  // 1 hour TTL
     let cwtData = try createCWTWithTTL(
@@ -226,9 +226,8 @@ final class CWTSecurityTests {
       timeToLive: ttl
     )
 
-    #expect(throws: CWTDecodingError.ttlExceeded) {
-      try CWTDecoder().decodeStatusListToken(from: cwtData)
-    }
+    let claims = try CWTDecoder().decodeStatusListToken(from: cwtData)
+    #expect(claims.timeToLive == ttl)
   }
 
   /// Verify that CWT with valid TTL is accepted.
