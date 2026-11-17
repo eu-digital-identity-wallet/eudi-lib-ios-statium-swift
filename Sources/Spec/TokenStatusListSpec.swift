@@ -40,4 +40,11 @@ public struct TokenStatusListSpec {
   public static let mediaTypeApplicationStatusListJWT: String = "application/\(Self.mediaSubtypeStatusListJWT)"
   public static let mediaSubtypeStatusListCWT: String = "statuslist+cwt"
   public static let mediaTypeApplicationStatusListCWT: String = "application/\(Self.mediaSubtypeStatusListCWT)"
+
+  /// RFC 7515 section 4.1.9: a "typ" without "/" has an implied "application/" prefix.
+  /// RFC 6838 section 4.2: media type names are case-insensitive.
+  public static func isStatusListJWTType(_ typ: String?) -> Bool {
+    guard let typ = typ?.lowercased() else { return false }
+    return typ == mediaSubtypeStatusListJWT || typ == mediaTypeApplicationStatusListJWT
+  }
 }

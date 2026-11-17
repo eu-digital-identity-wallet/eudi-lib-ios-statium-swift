@@ -245,14 +245,14 @@ final class CWTSecurityTests {
     #expect(claims.timeToLive == ttl)
   }
 
-  /// Verify that CWT without exp or ttl is rejected (no freshness constraint).
+  /// exp and ttl are RECOMMENDED, so a CWT without them is accepted.
   @Test
-  func testDecodeCWT_WhenNoFreshnessConstraint_ThenThrowsNoFreshnessConstraint() throws {
+  func testDecodeCWT_WhenNoExpOrTTL_ThenSucceeds() throws {
     let cwtData = try createCWTWithoutFreshnessConstraint()
 
-    #expect(throws: CWTDecodingError.noFreshnessConstraint) {
-      try CWTDecoder().decodeStatusListToken(from: cwtData)
-    }
+    let claims = try CWTDecoder().decodeStatusListToken(from: cwtData)
+    #expect(claims.expirationTime == nil)
+    #expect(claims.timeToLive == nil)
   }
 
   /// Verify that CWT with only ttl (no exp) is accepted.

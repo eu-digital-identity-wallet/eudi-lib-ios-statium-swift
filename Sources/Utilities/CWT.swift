@@ -303,11 +303,7 @@ public struct CWTDecoder {
       throw CWTDecodingError.expired
     }
 
-    // Require at least exp OR ttl to be present for freshness guarantee
-    // A token without either constraint could be replayed indefinitely.
-    if expiration == nil && timeToLive == nil {
-      throw CWTDecodingError.noFreshnessConstraint
-    }
+    // draft-ietf-oauth-status-list-21: exp and ttl are RECOMMENDED. A token without them is valid.
   }
 
   private static func validateType(
@@ -321,7 +317,7 @@ public struct CWTDecoder {
     guard let protected = try? CBORDecoder(input: [UInt8](protectedHeaderBytes)).decodeItem(),
           case let .map(m) = protected,
           let typ = coseTyp(from: m),
-          typ == expected else {
+          typ.lowercased() == expected else {
       throw CWTDecodingError.invalidType
     }
   }
