@@ -303,7 +303,11 @@ public struct CWTDecoder {
       throw CWTDecodingError.expired
     }
 
-    // draft-ietf-oauth-status-list-21: exp and ttl are RECOMMENDED. A token without them is valid.
+    // Require at least exp OR ttl to be present for freshness guarantee
+    // A token without either constraint could be replayed indefinitely.
+    if expiration == nil && timeToLive == nil {
+      throw CWTDecodingError.noFreshnessConstraint
+    }
   }
 
   private static func validateType(
