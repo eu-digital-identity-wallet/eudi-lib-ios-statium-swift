@@ -21,9 +21,9 @@ import Compression
 
 @Suite
 final class ReadStatusTests {
-  
+
   @Test
-  func testBitsPerStatusOneOps() async {
+  func testBitsPerStatusOneOps() async throws {
     // Example 1: 1 bit per status
     // In this case, each bit represents a status (0 or 1)
     // Byte: 10101010 (binary) = 0xAA (hex) = 170 (decimal)
@@ -35,96 +35,49 @@ final class ReadStatusTests {
     // Status at index 5: 1
     // Status at index 6: 0
     // Status at index 7: 1 (leftmost bit)
-    
+
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0xaa])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 3)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 4)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 5)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 6)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 7)
-    #expect(result == 1)
+
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 1)
+    #expect(try await readStatus.readStatus(at: 2) == 0)
+    #expect(try await readStatus.readStatus(at: 3) == 1)
+    #expect(try await readStatus.readStatus(at: 4) == 0)
+    #expect(try await readStatus.readStatus(at: 5) == 1)
+    #expect(try await readStatus.readStatus(at: 6) == 0)
+    #expect(try await readStatus.readStatus(at: 7) == 1)
   }
-  
+
   @Test
-  func testBitsPerStatusOneOps2() async {
+  func testBitsPerStatusOneOps2() async throws {
     // Test with multiple bytes
     // Byte 0: 10101010 (0xAA)
     // Byte 1: 11001100 (0xCC)
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0xaa, 0xcc])
-    var result: Byte?
-    
+
     // First byte (index 0-7)
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 3)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 4)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 5)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 6)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 7)
-    #expect(result == 1)
-    
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 1)
+    #expect(try await readStatus.readStatus(at: 2) == 0)
+    #expect(try await readStatus.readStatus(at: 3) == 1)
+    #expect(try await readStatus.readStatus(at: 4) == 0)
+    #expect(try await readStatus.readStatus(at: 5) == 1)
+    #expect(try await readStatus.readStatus(at: 6) == 0)
+    #expect(try await readStatus.readStatus(at: 7) == 1)
+
     // Second byte (index 8-15)
-    result = await readStatus.readStatus(at: 8)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 9)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 10)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 11)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 12)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 13)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 14)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 15)
-    #expect(result == 1)
+    #expect(try await readStatus.readStatus(at: 8) == 0)
+    #expect(try await readStatus.readStatus(at: 9) == 0)
+    #expect(try await readStatus.readStatus(at: 10) == 1)
+    #expect(try await readStatus.readStatus(at: 11) == 1)
+    #expect(try await readStatus.readStatus(at: 12) == 0)
+    #expect(try await readStatus.readStatus(at: 13) == 0)
+    #expect(try await readStatus.readStatus(at: 14) == 1)
+    #expect(try await readStatus.readStatus(at: 15) == 1)
   }
-  
+
   @Test
-  func testBitsPerStatusTwoOps() async {
+  func testBitsPerStatusTwoOps() async throws {
     // Example 2: 2 bits per status
     // In this case, each 2 bits represent a status (0-3)
     // Byte: 11100100 (binary) = 0xE4 (hex) = 228 (decimal)
@@ -133,122 +86,110 @@ final class ReadStatusTests {
     // Status at index 2: 10 (binary) = 2 (decimal)
     // Status at index 3: 11 (binary) = 3 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .two, byteArray: [0xe4])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 2)
-    
-    result = await readStatus.readStatus(at: 3)
-    #expect(result == 3)
+
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 1)
+    #expect(try await readStatus.readStatus(at: 2) == 2)
+    #expect(try await readStatus.readStatus(at: 3) == 3)
   }
-  
+
   @Test
-  func testBitsPerStatusTwoOps2() async {
-    
+  func testBitsPerStatusTwoOps2() async throws {
     // Test with multiple bytes
     // Byte 0: 11100100 (0xE4)
     // Byte 1: 10011011 (0x9B)
-    
+
     let readStatus = ReadStatus(bitsPerStatus: .two, byteArray: [0xe4, 0x9b])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 2)
-    
-    result = await readStatus.readStatus(at: 3)
-    #expect(result == 3)
-    
-    result = await readStatus.readStatus(at: 4)
-    #expect(result == 3)
-    
-    result = await readStatus.readStatus(at: 5)
-    #expect(result == 2)
-    
-    result = await readStatus.readStatus(at: 6)
-    #expect(result == 1)
-    
-    result = await readStatus.readStatus(at: 7)
-    #expect(result == 2)
+
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 1)
+    #expect(try await readStatus.readStatus(at: 2) == 2)
+    #expect(try await readStatus.readStatus(at: 3) == 3)
+    #expect(try await readStatus.readStatus(at: 4) == 3)
+    #expect(try await readStatus.readStatus(at: 5) == 2)
+    #expect(try await readStatus.readStatus(at: 6) == 1)
+    #expect(try await readStatus.readStatus(at: 7) == 2)
   }
-  
+
   @Test
-  func testBitsPerStatusFourOps() async {
+  func testBitsPerStatusFourOps() async throws {
     // Example 3: 4 bits per status
     // In this case, each 4 bits (nibble) represent a status (0-15)
     // Byte: 11110000 (binary) = 0xF0 (hex) = 240 (decimal)
     // Status at index 0: 0000 (binary) = 0 (decimal)
     // Status at index 1: 1111 (binary) = 15 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .four, byteArray: [0xf0])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 15)
+
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 15)
   }
-  
+
   @Test
-  func testBitsPerStatusFourOps2() async {
+  func testBitsPerStatusFourOps2() async throws {
     // Test with multiple bytes
     // Byte 0: 11110000 (0xF0)
     // Byte 1: 10100101 (0xA5)
     let readStatus = ReadStatus(bitsPerStatus: .four, byteArray: [0xf0, 0xa5])
-    var result: Byte?
-    
+
     // First byte (index 0-1)
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 15)
-    
+    #expect(try await readStatus.readStatus(at: 0) == 0)
+    #expect(try await readStatus.readStatus(at: 1) == 15)
+
     // Second byte (index 2-3)
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 5)
-    
-    result = await readStatus.readStatus(at: 3)
-    #expect(result == 10)
+    #expect(try await readStatus.readStatus(at: 2) == 5)
+    #expect(try await readStatus.readStatus(at: 3) == 10)
   }
-  
+
   @Test
-  func testBitsPerStatusEightOps() async {
+  func testBitsPerStatusEightOps() async throws {
     // Example 4: 8 bits per status
     // In this case, each byte represents a status (0-255)
     // Byte 0: 11111111 (binary) = 0xFF (hex) = 255 (decimal)
     // Byte 1: 00000000 (binary) = 0x00 (hex) = 0 (decimal)
     // Byte 2: 10101010 (binary) = 0xAA (hex) = 170 (decimal)
     let readStatus = ReadStatus(bitsPerStatus: .eight, byteArray: [0xff, 0x00, 0xaa])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: 0)
-    #expect(result == 255)
-    
-    result = await readStatus.readStatus(at: 1)
-    #expect(result == 0)
-    
-    result = await readStatus.readStatus(at: 2)
-    #expect(result == 170)
+
+    #expect(try await readStatus.readStatus(at: 0) == 255)
+    #expect(try await readStatus.readStatus(at: 1) == 0)
+    #expect(try await readStatus.readStatus(at: 2) == 170)
   }
-  
+
   @Test
-  func testNegativeIndexOps() async {
+  func testNegativeIndexThrowsOutOfRange() async {
+    // Draft 20 §8.3: Negative index MUST be rejected
     let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0x00])
-    var result: Byte?
-    
-    result = await readStatus.readStatus(at: -1)
-    #expect(result == nil)
+
+    await #expect(throws: StatusError.outOfRange) {
+      _ = try await readStatus.readStatus(at: -1)
+    }
+  }
+
+  @Test
+  func testOutOfBoundsIndexThrowsOutOfRange() async {
+    // Draft 20 §8.3: When idx is out of bounds, the verifier MUST reject
+    let readStatus = ReadStatus(bitsPerStatus: .one, byteArray: [0xaa])
+
+    // Index 8 is out of bounds for a single byte with 1 bit per status
+    await #expect(throws: StatusError.outOfRange) {
+      _ = try await readStatus.readStatus(at: 8)
+    }
+
+    // Test with 2 bits per status - 4 statuses per byte, so index 4 is out of bounds
+    let readStatus2 = ReadStatus(bitsPerStatus: .two, byteArray: [0xe4])
+    await #expect(throws: StatusError.outOfRange) {
+      _ = try await readStatus2.readStatus(at: 4)
+    }
+
+    // Test with 4 bits per status - 2 statuses per byte, so index 2 is out of bounds
+    let readStatus4 = ReadStatus(bitsPerStatus: .four, byteArray: [0xf0])
+    await #expect(throws: StatusError.outOfRange) {
+      _ = try await readStatus4.readStatus(at: 2)
+    }
+
+    // Test with 8 bits per status - 1 status per byte, so index 1 is out of bounds for 1 byte
+    let readStatus8 = ReadStatus(bitsPerStatus: .eight, byteArray: [0xff])
+    await #expect(throws: StatusError.outOfRange) {
+      _ = try await readStatus8.readStatus(at: 1)
+    }
   }
 }
