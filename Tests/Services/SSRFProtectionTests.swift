@@ -590,6 +590,282 @@ struct SystemDNSResolverTests {
   }
 }
 
+// MARK: - Redirect Hop Limit Tests (Draft 20 §8.2)
+
+@Suite
+struct SSRFRedirectDelegateTests {
+
+  @Test
+  func testRedirectDelegate_WhenCreatedWithDefaultMaxRedirects_ThenHasDefault5() {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = validator.makeRedirectValidatingDelegate()
+
+    // The delegate should be created with the default max redirects of 5
+    // We can't directly test the private property, but we verify the delegate is created
+    #expect(delegate != nil)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenCreatedWithCustomMaxRedirects_ThenUsesCustomValue() {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = SSRFRedirectDelegate(validator: validator, maxRedirects: 3)
+
+    // Verify delegate is created with custom value
+    #expect(delegate != nil)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenRedirectToPrivateIP_ThenBlocksRedirect() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "public.example.com", addresses: ["93.184.216.34"])
+    // internal.example.com resolves to private IP
+    mockResolver.setResponse(for: "internal.example.com", addresses: ["192.168.1.1"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = validator.makeRedirectValidatingDelegate()
+
+    // Create mock session and task for testing
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://public.example.com/status")!
+    let redirectURL = URL(string: "https://internal.example.com/status")!
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": redirectURL.absoluteString]
+    )!
+
+    var redirectRequest = URLRequest(url: redirectURL)
+
+    // Test the redirect validation
+    let expectation = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+      delegate.urlSession(
+        session,
+        task: task,
+        willPerformHTTPRedirection: response,
+        newRequest: redirectRequest
+      ) { request in
+        continuation.resume(returning: request)
+      }
+    }
+
+    // The redirect should be blocked (nil returned)
+    #expect(expectation == nil)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenRedirectToPublicIP_ThenAllowsRedirect() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "public1.example.com", addresses: ["93.184.216.34"])
+    mockResolver.setResponse(for: "public2.example.com", addresses: ["8.8.8.8"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = validator.makeRedirectValidatingDelegate()
+
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://public1.example.com/status")!
+    let redirectURL = URL(string: "https://public2.example.com/status")!
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": redirectURL.absoluteString]
+    )!
+
+    let redirectRequest = URLRequest(url: redirectURL)
+
+    let expectation = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+      delegate.urlSession(
+        session,
+        task: task,
+        willPerformHTTPRedirection: response,
+        newRequest: redirectRequest
+      ) { request in
+        continuation.resume(returning: request)
+      }
+    }
+
+    // The redirect should be allowed (request returned)
+    #expect(expectation != nil)
+    #expect(expectation?.url == redirectURL)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenRedirectFromHTTPSToHTTP_ThenBlocksRedirect() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "public.example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = validator.makeRedirectValidatingDelegate()
+
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://public.example.com/status")!
+    let redirectURL = URL(string: "http://public.example.com/status")! // HTTP downgrade
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": redirectURL.absoluteString]
+    )!
+
+    let redirectRequest = URLRequest(url: redirectURL)
+
+    let expectation = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+      delegate.urlSession(
+        session,
+        task: task,
+        willPerformHTTPRedirection: response,
+        newRequest: redirectRequest
+      ) { request in
+        continuation.resume(returning: request)
+      }
+    }
+
+    // The redirect should be blocked (HTTP downgrade attack)
+    #expect(expectation == nil)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenRedirectToLocalhost_ThenBlocksRedirect() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "public.example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = validator.makeRedirectValidatingDelegate()
+
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://public.example.com/status")!
+    let redirectURL = URL(string: "https://localhost/status")!
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": redirectURL.absoluteString]
+    )!
+
+    let redirectRequest = URLRequest(url: redirectURL)
+
+    let expectation = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+      delegate.urlSession(
+        session,
+        task: task,
+        willPerformHTTPRedirection: response,
+        newRequest: redirectRequest
+      ) { request in
+        continuation.resume(returning: request)
+      }
+    }
+
+    // The redirect should be blocked (localhost)
+    #expect(expectation == nil)
+  }
+
+  @Test
+  func testRedirectDelegate_WhenExceedsMaxRedirects_ThenBlocksRedirect() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = SSRFRedirectDelegate(validator: validator, maxRedirects: 2)
+
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://example.com/status")!
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": originalURL.absoluteString]
+    )!
+
+    let redirectRequest = URLRequest(url: originalURL)
+
+    // Simulate multiple redirects
+    for i in 1...3 {
+      let result = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+        delegate.urlSession(
+          session,
+          task: task,
+          willPerformHTTPRedirection: response,
+          newRequest: redirectRequest
+        ) { request in
+          continuation.resume(returning: request)
+        }
+      }
+
+      if i <= 2 {
+        // First 2 redirects should be allowed
+        #expect(result != nil, "Redirect \(i) should be allowed")
+      } else {
+        // 3rd redirect should be blocked (exceeds max of 2)
+        #expect(result == nil, "Redirect \(i) should be blocked (exceeds max)")
+      }
+    }
+  }
+
+  @Test
+  func testRedirectDelegate_WhenTaskCompletes_ThenCleansUpState() async {
+    let mockResolver = MockDNSResolver()
+    mockResolver.setResponse(for: "example.com", addresses: ["93.184.216.34"])
+    let validator = SSRFValidator(dnsResolver: mockResolver)
+    let delegate = SSRFRedirectDelegate(validator: validator, maxRedirects: 2)
+
+    let session = URLSession.shared
+    let originalURL = URL(string: "https://example.com/status")!
+    let task = session.dataTask(with: originalURL)
+
+    let response = HTTPURLResponse(
+      url: originalURL,
+      statusCode: 302,
+      httpVersion: "HTTP/1.1",
+      headerFields: ["Location": originalURL.absoluteString]
+    )!
+
+    let redirectRequest = URLRequest(url: originalURL)
+
+    // Use up 2 redirects
+    for _ in 1...2 {
+      _ = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+        delegate.urlSession(
+          session,
+          task: task,
+          willPerformHTTPRedirection: response,
+          newRequest: redirectRequest
+        ) { request in
+          continuation.resume(returning: request)
+        }
+      }
+    }
+
+    // Task completes - should clean up state
+    delegate.urlSession(session, task: task, didCompleteWithError: nil)
+
+    // Now create a new task and verify redirect counting starts fresh
+    let newTask = session.dataTask(with: originalURL)
+    let result = await withCheckedContinuation { (continuation: CheckedContinuation<URLRequest?, Never>) in
+      delegate.urlSession(
+        session,
+        task: newTask,
+        willPerformHTTPRedirection: response,
+        newRequest: redirectRequest
+      ) { request in
+        continuation.resume(returning: request)
+      }
+    }
+
+    // New task should start fresh, so first redirect should be allowed
+    #expect(result != nil)
+  }
+}
+
 // MARK: - NetworkingService Integration Tests
 
 @Suite

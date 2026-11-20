@@ -15,10 +15,10 @@
  */
 import Foundation
 
-//// [Token Status List](https://www.ietf.org/archive/id/draft-ietf-oauth-status-list-10.html)
+/// [Token Status List](https://datatracker.ietf.org/doc/html/draft-ietf-oauth-status-list-20)
 public struct TokenStatusListSpec {
-  public static let version: String = "draft-10"
-  
+  public static let version: String = "draft-20"
+
   public static let status: String = "status"
   public static let statusList: String = "status_list"
   public static let idx: String = "idx"
@@ -28,12 +28,13 @@ public struct TokenStatusListSpec {
   public static let aggregationUri: String = "aggregation_uri"
   public static let timeToLive: String = "ttl"
   public static let time: String = "time"
-  
+
   public static let statusValid: Byte = 0x00
   public static let statusInvalid: Byte = 0x01
   public static let statusSuspended: Byte = 0x02
   public static let statusApplicationSpecific: Byte = 0x03
-  public static let statusApplicationSpecificRangeStart: Byte = 0x0b
+  /// Draft 20 §7.1: Application-specific range is now 0x0C-0x0F (was 0x0B-0x0F in earlier drafts)
+  public static let statusApplicationSpecificRangeStart: Byte = 0x0c
   public static let statusApplicationSpecificRangeEnd: Byte = 0x0f
   
   public static let mediaSubtypeStatusListJWT: String = "statuslist+jwt"

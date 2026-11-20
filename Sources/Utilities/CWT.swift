@@ -27,6 +27,7 @@ public enum CWTDecodingError: Error {
   case invalidListBytes
   case inputTooLarge
   case trailingBytes
+  case cwtClaimsSetTagNotAllowed
 
   // Added for required validation
   case invalidType
@@ -73,8 +74,13 @@ public struct CWTDecoder {
     // Expect COSE_Sign1: tag(18, array[4])
     // NOTE: We require the COSE_Sign1 tag (18) and reject untagged arrays.
     // Untagged 4-element arrays are ambiguous with COSE_Sign (multi-signature) format.
+    // Draft 20 §5.2: CWT Claims Set tag (61) MUST NOT be used for Status List Tokens.
     let coseArray: [CBOR]
     switch root {
+    case .tagged(let tag, _) where tag.rawValue == 61:
+      // Draft 20 explicitly prohibits Tag 61 (CWT Claims Set) wrapping for Status List Tokens
+      throw CWTDecodingError.cwtClaimsSetTagNotAllowed
+
     case .tagged(let tag, let value) where tag.rawValue == 18:
       guard case let .array(arr) = value, arr.count == 4 else {
         throw CWTDecodingError.invalidCoseStructure

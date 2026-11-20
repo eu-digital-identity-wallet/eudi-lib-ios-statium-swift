@@ -174,6 +174,17 @@ final class CWTSecurityTests {
 
   // MARK: - CWT Framing Tests
 
+  /// Verify that CWT Claims Set tag (61) is rejected.
+  /// Draft 20 §5.2: Tag 61 MUST NOT be used for Status List Tokens.
+  @Test
+  func testDecodeCWT_WhenTag61Used_ThenThrowsCwtClaimsSetTagNotAllowed() throws {
+    let tag61Data = try createCWTWithTag61()
+
+    #expect(throws: CWTDecodingError.cwtClaimsSetTagNotAllowed) {
+      try CWTDecoder().decodeStatusListToken(from: tag61Data)
+    }
+  }
+
   /// Verify that untagged 4-element array is rejected.
   /// COSE_Sign1 MUST have tag 18 to distinguish from COSE_Sign.
   @Test
@@ -461,6 +472,30 @@ final class CWTSecurityTests {
     )
 
     return Data(CBOR.encode(coseSign1))
+  }
+
+  /// Creates a CWT with Tag 61 (CWT Claims Set) which is prohibited for Status List Tokens.
+  private func createCWTWithTag61() throws -> Data {
+    let statusListMap: CBOR = .map([
+      .utf8String("bits"): .unsignedInt(1),
+      .utf8String("lst"): .byteString([0x78, 0x9c, 0x63, 0x60, 0x00, 0x00, 0x00, 0x01, 0x00, 0x01])
+    ])
+
+    let payload: CBOR = .map([
+      .unsignedInt(2): .utf8String("https://example.com/status"),
+      .unsignedInt(6): .unsignedInt(UInt64(Date().timeIntervalSince1970)),
+      .unsignedInt(4): .unsignedInt(UInt64(Date().timeIntervalSince1970 + 3600)),
+      .unsignedInt(65533): statusListMap
+    ])
+
+    // Use Tag 61 (CWT Claims Set) instead of Tag 18 (COSE_Sign1)
+    // This is explicitly prohibited by Draft 20 §5.2
+    let cwtClaimsSet: CBOR = .tagged(
+      CBOR.Tag(rawValue: 61),
+      payload
+    )
+
+    return Data(CBOR.encode(cwtClaimsSet))
   }
 
   /// Creates an untagged COSE array.
