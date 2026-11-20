@@ -38,4 +38,13 @@ public enum StatusError: LocalizedError, Equatable {
   case algorithmNoneNotAllowed
   /// JWT has empty or missing signature
   case missingSignature
+
+  // MARK: - Historical Resolution Errors (Draft 20 §8.4)
+
+  /// The issuer does not support historical resolution (returned 404 for the time query)
+  case historicalResolutionNotSupported
+  /// The returned status list does not cover the requested timestamp.
+  /// This can happen when a CDN ignores the time query parameter.
+  /// Draft 20 §8.4: iat ≤ requested_timestamp ≤ exp must hold.
+  case historicalTimestampNotCovered(requestedTime: TimeInterval, iat: TimeInterval, exp: TimeInterval?)
 }

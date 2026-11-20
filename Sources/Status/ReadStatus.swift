@@ -46,31 +46,33 @@ public actor ReadStatus {
   /// at the given index and extracts the value of the status byte accordingly.
   ///
   /// - Parameter index: The index of the status in the byte array.
-  /// - Returns: An optional `Byte` value representing the status at the given index, or `nil` if the index is out of bounds or invalid.
+  /// - Returns: A `Byte` value representing the status at the given index.
+  /// - Throws: `StatusError.outOfRange` if the index is negative or out of bounds.
+  ///           Draft 20 §8.3: When idx is out of bounds, the verifier MUST reject the Referenced Token.
   ///
   /// Example usage:
   /// ```swift
   /// let readStatus = ReadStatus(bitsPerStatus: .four, byteArray: [0xff])
-  /// let status = await readStatus.readStatus(at: 2)
+  /// let status = try await readStatus.readStatus(at: 2)
   /// print(status) // Prints the byte value at index 2
   /// ```
-  public func readStatus(at index: Int) -> Byte? {
-    
-    // Ensure the index is non-negative.
+  public func readStatus(at index: Int) throws -> Byte {
+
+    // Draft 20 §8.3: Negative index MUST be rejected
     guard index >= .zero else {
-      return nil
+      throw StatusError.outOfRange
     }
-    
+
     // Calculate the byte and bit position for the given index.
     let (bytePosition, bitPosition) = bitsPerStatus.byteAndBitPosition(
       index: UInt(index)
     )
-    
-    // Attempt to retrieve the byte from the byte array.
+
+    // Draft 20 §8.3: When idx >= (decompressed_bytes × 8) / bits, MUST reject the Referenced Token
     guard let byte = byteArray[safe: Int(bytePosition)] else {
-      return nil
+      throw StatusError.outOfRange
     }
-    
+
     // Read the status byte based on the bit position.
     let status = bitsPerStatus.readStatusByte(
       statusByte: byte,

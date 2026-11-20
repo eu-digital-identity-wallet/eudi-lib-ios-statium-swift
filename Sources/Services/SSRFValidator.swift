@@ -129,13 +129,24 @@ package final class SSRFValidator: Sendable {
 /// - Redirects from HTTPS to HTTP (downgrade attacks)
 /// - Redirects to localhost or private networks
 /// - Redirects to non-public IP addresses
+/// - Excessive redirect chains (Draft 20 §8.2 recommends limiting redirect hops)
 ///
 package final class SSRFRedirectDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 
   private let validator: SSRFValidator
 
-  package init(validator: SSRFValidator) {
+  /// Maximum number of redirects allowed per request chain.
+  /// Draft 20 §8.2 recommends limiting redirects to prevent redirect loops and abuse.
+  private let maxRedirects: Int
+
+  /// Tracks redirect counts per task to enforce hop limits.
+  /// Thread-safe via NSLock since URLSession delegate callbacks may happen on various threads.
+  private let redirectCountsLock = NSLock()
+  private var redirectCounts: [Int: Int] = [:]
+
+  package init(validator: SSRFValidator, maxRedirects: Int = 5) {
     self.validator = validator
+    self.maxRedirects = maxRedirects
   }
 
   package func urlSession(
@@ -150,6 +161,20 @@ package final class SSRFRedirectDelegate: NSObject, URLSessionTaskDelegate, @unc
       return
     }
 
+    // Check and increment redirect count for this task
+    let taskId = task.taskIdentifier
+    let currentCount: Int = redirectCountsLock.withLock {
+      let count = (redirectCounts[taskId] ?? 0) + 1
+      redirectCounts[taskId] = count
+      return count
+    }
+
+    // Block if redirect limit exceeded
+    if currentCount > maxRedirects {
+      completionHandler(nil)
+      return
+    }
+
     // Capture validator for the task
     let validator = self.validator
 
@@ -161,6 +186,14 @@ package final class SSRFRedirectDelegate: NSObject, URLSessionTaskDelegate, @unc
       } catch {
         completionHandler(nil) // Block unsafe redirect
       }
+    }
+  }
+
+  /// Clean up redirect tracking when a task completes
+  package func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    let taskId = task.taskIdentifier
+    _ = redirectCountsLock.withLock {
+      redirectCounts.removeValue(forKey: taskId)
     }
   }
 }
