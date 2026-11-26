@@ -215,8 +215,7 @@ private extension StatusListTokenFetcher {
       from: jwt.payload
     )
     
-    let header = jwt.header["typ"] as? String
-    if header != TokenStatusListSpec.mediaSubtypeStatusListJWT {
+    if !TokenStatusListSpec.isStatusListJWTType(jwt.header["typ"] as? String) {
       throw StatusError.badJwtHeader
     }
     
