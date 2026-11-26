@@ -321,7 +321,7 @@ public struct CWTDecoder {
     guard let protected = try? CBORDecoder(input: [UInt8](protectedHeaderBytes)).decodeItem(),
           case let .map(m) = protected,
           let typ = coseTyp(from: m),
-          typ == expected else {
+          typ.lowercased() == expected else {
       throw CWTDecodingError.invalidType
     }
   }

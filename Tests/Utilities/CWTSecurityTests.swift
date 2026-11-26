@@ -99,6 +99,35 @@ final class CWTSecurityTests {
     #expect(claims.subject == "https://issuer.example.com/status")
   }
 
+  /// Media types are case-insensitive (RFC 6838 section 4.2).
+  @Test
+  func testDecodeCWT_WhenTypHasOtherCase_ThenSucceeds() throws {
+    let cwtData = try createValidCWT(
+      subject: "https://issuer.example.com/status",
+      issuedAt: Date().timeIntervalSince1970,
+      expiration: Date().timeIntervalSince1970 + 3600,
+      typ: "Application/StatusList+CWT"
+    )
+
+    let claims = try CWTDecoder().decodeStatusListToken(from: cwtData)
+    #expect(claims.subject == "https://issuer.example.com/status")
+  }
+
+  /// A CWT typ must be the full media type application/statuslist+cwt.
+  @Test(arguments: ["statuslist+cwt", "application/statuslist+jwt", "application/cwt"])
+  func testDecodeCWT_WhenTypIsOtherType_ThenThrowsInvalidType(_ typ: String) throws {
+    let cwtData = try createValidCWT(
+      subject: "https://issuer.example.com/status",
+      issuedAt: Date().timeIntervalSince1970,
+      expiration: Date().timeIntervalSince1970 + 3600,
+      typ: typ
+    )
+
+    #expect(throws: CWTDecodingError.invalidType) {
+      try CWTDecoder().decodeStatusListToken(from: cwtData)
+    }
+  }
+
   // MARK: - CBOR Depth Limit Tests
 
   /// Verify that deeply nested CBOR throws an error.
@@ -275,11 +304,12 @@ final class CWTSecurityTests {
   private func createValidCWT(
     subject: String,
     issuedAt: TimeInterval,
-    expiration: TimeInterval
+    expiration: TimeInterval,
+    typ: String = "application/statuslist+cwt"
   ) throws -> Data {
     // Protected header with typ
     let protectedHeader: CBOR = .map([
-      .unsignedInt(16): .utf8String("application/statuslist+cwt")  // typ
+      .unsignedInt(16): .utf8String(typ)  // typ
     ])
     let protectedHeaderBytes = Data(CBOR.encode(protectedHeader))
 
